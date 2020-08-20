@@ -356,7 +356,7 @@ while not done:
     if lenP > 0 and currRobotPos >= 0:
         #print(currRobotPos)
         if currRobotPos < lenP:
-            iRob, jRob = path[currRobotPos][1]
+            iRob, jRob = path[currRobotPos][2]
 
             # if (iRob, jRob) != (prevIRob, prevJRob):
             #     changes = gridWorld.sensorSweep(iRob, jRob, sequence)
@@ -376,7 +376,7 @@ while not done:
 
         else: #Handle for goal frame not in path
             #print("Else Handler")
-            iRob, jRob = path[lenP - 1][2]
+            iRob, jRob = path[lenP - 1][1]
 
     #Draw Cells and colours
     for i in range(H_CELLS):
@@ -460,35 +460,48 @@ while not done:
             COM_other = gridWorld.map[x[1][0]][x[1][1]].getCOM()
             pygame.draw.lines(screen, colour2, False, [COM_other, COM], 2)
     
-    # if drawPath and lenP == 0:
-    #     start = gridWorld.start
-    #     goal = gridWorld.goal
-    #     minNeighbour = goal
-    #     while minNeighbour != start:
-    #         minKey = [99, 99]
-    #         for x in sequence:
-    #             dx = x[0]
-    #             dy = x[1]
+    if drawPath and lenP == 0:
+        start = gridWorld.start
+        goal = gridWorld.goal
 
-    #             if gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._Type != 1:
-    #                 if U._isSmaller(gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._key, minKey):
-    #                     #print("Smaller Found")
-    #                     minKey = gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._key
-    #                     target = (minNeighbour[0] + dx, minNeighbour[1] + dy)
+        
+        if gridWorld.map[start[0]][start[1]]._h > 0: #Determine algorithim used based on start point hueristic value. 0 if LPA, != 0 if DStarLite
+            print("Detected LPAStar")
+            minNeighbour = goal
+            targObj = start
+            alg = 'L'
+        else:
+            print("Detected DStarLite")
+            minNeighbour = start
+            targObj = goal
+            alg = 'D'
+        
+        while minNeighbour != targObj:
+            minKey = [99, 99]
+            for x in sequence:
+                dx = x[0]
+                dy = x[1]
+
+                if gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._Type != 1:
+                    if U._isSmaller(gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._key, minKey):
+                        #print("Smaller Found")
+                        minKey = gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._key
+                        target = (minNeighbour[0] + dx, minNeighbour[1] + dy)
                 
-    #         COM_other = gridWorld.map[target[0]][target[1]].getCOM()
-    #         COM_local = gridWorld.map[minNeighbour[0]][minNeighbour[1]].getCOM()
+            COM_other = gridWorld.map[target[0]][target[1]].getCOM()
+            COM_local = gridWorld.map[minNeighbour[0]][minNeighbour[1]].getCOM()
 
-    #         path.append([[COM_other, COM_local], [target[0],target[1]], [minNeighbour[0], minNeighbour[1]]])
-    #         minNeighbour = target
-    #     #path.append()
-    #     path.reverse() #Move path from goal to start to start to goal
-    #     lenP = len(path)
-    #     getAndRenderResults()
+            path.append([[COM_other, COM_local], [target[0],target[1]], [minNeighbour[0], minNeighbour[1]]])
+            minNeighbour = target
+        #path.append()
+        if alg == 'L':
+            path.reverse() #Move path from goal to start to start to goal
+        lenP = len(path)
+        getAndRenderResults()
 
-    # elif drawPath:
-    #     for x in path:
-    #         pygame.draw.lines(screen, red, False, x[0], 2)
+    elif drawPath:
+        for x in path:
+            pygame.draw.lines(screen, red, False, x[0], 2)
 
     pygame.display.flip()
 
