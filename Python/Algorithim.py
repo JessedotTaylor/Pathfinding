@@ -143,6 +143,7 @@ class LPAStar:
 class DStarLite:
     def __init__(self, grid, queue, hueristic):
         self.km = 0
+        self.setSLast(grid.start)
 
         for i in range(grid.rows):
             for j in range(grid.cols):
@@ -163,14 +164,17 @@ class DStarLite:
         self.grid = grid
         self.U = queue
 
-        self.sLast = [-99,-99]
-
         self.alg = 'D'
+
+    def setSLast(self, inp):
+        self.sLast = inp
+        self.iStart = inp[0]
+        self.jStart = inp[1]
 
     def genH(self, hueristic, workingPair=None, targetPair=None):
         write = False
         if targetPair == None:
-            targetPair = [self.iStart, self.jStart]
+            targetPair = self.sLast
             write = True
 
         if workingPair == None:
@@ -195,34 +199,13 @@ class DStarLite:
             else:
                 return calcH
 
-            
-
-         
-
-    # def genH(self, i, j, hueristic):
-    #     if hueristic == "EUCLIDEAN":
-    #         self.grid.map[i][j].setH(sqrt((i - self.iStart)**2 + (j - self.jStart)**2))
-        
-    #     elif hueristic == "MANHATTAN":
-    #         self.grid.map[i][j].setH(max(abs(i - self.iStart), abs(j - self.jStart)))
-
-    # def genH(self, hueristic):
-    #     if hueristic == "EUCLIDEAN":
-    #         for i in range(self.grid.rows):
-    #             for j in range(self.grid.cols):
-    #                 self.grid.map[i][j].setH(sqrt((i - self.iStart)**2 + (j - self.jStart)**2))
-        
-    #     elif hueristic == "MANHATTAN":
-    #         for i in range(self.grid.rows):
-    #             for j in range(self.grid.cols):
-    #                 self.grid.map[i][j].setH(max(abs(i - self.iStart), abs(j - self.jStart)))
-
     def _calcKeys(self, x1, x2=None):
         if x2 != None: #Coordinates passed
             x1 = self.grid.map[x1][x2]  #set x1 to vector, like default behaviour
 
         k2 = min(x1.getG(), x1.getRHS())
         k1 = k2 + x1.getH() + self.km
+        #print(k2,  x1.getH(), self.km)
         x1.setKey([k1, k2])
         return [k1, k2]
 
@@ -292,8 +275,6 @@ class DStarLite:
 
 
     def updateVertex(self, u, sPrime):
-        # print("Update Vertex Called")
-        # print(u)
         if u._status == 0:
             u._status = 1
         
@@ -329,22 +310,25 @@ if __name__ == "__main__":
     hueristic = 'MANHATTAN'
     gridWorld = classes.Grid('grids/grid_DStar_journal.map', sequence)
     DStarLite = DStarLite(gridWorld, U, hueristic)
-    print(gridWorld)
-    DStarLite.computeShortestPathStep(10)
-    # LPA = LPAStar(gridWorld, U, hueristic)
-    # LPA.computeShortestPath()
+    #print(DStarLite.genH(hueristic, [5,2], [2,1]))
+    DStarLite.computeShortestPath()
+    changes = gridWorld.sensorSweep(3,1,sequence)
     # print('\n' * 50)
-    # changes = gridWorld.sensorSweep(3,2)
-    # #print(gridWorld)
-    # print("Step 0 Q")
-    # print(LPA.U)
-    
-    # for changedCell in changes:  #The actual cells whoose changes were detected by the sensor sweep
-    #     for x in changedCell.neighbours: #The neighbours of the changed cells, the effected cells
-    #         targV = gridWorld.map[x[1][0]][x[1][1]]
-    #         if targV.getType() != 1:
-    #             #targV.printNeigbours()
-    #             #print(targV, changedCell)
-    #             LPA.updateVertex(targV, changedCell) #Update the difference of the changed cell and the effected cells
-    # LPA.computeShortestPathStep(10)
-    #LPA.printGrid()
+    # print(gridWorld)
+    print("Step 0 Q")
+    print(DStarLite.U)
+
+    if changes != []:
+        print("Changes Detected")
+        DStarLite.km = DStarLite.km + DStarLite.genH(hueristic, [3, 1], DStarLite.sLast)
+        DStarLite.setSLast([3, 1])
+        DStarLite.genH(hueristic)
+
+    for changedCell in changes:  #The actual cells whoose changes were detected by the sensor sweep
+        for x in changedCell.getNeighbours(): #The neighbours of the changed cells, the effected cells
+            targV = gridWorld.map[x[1][0]][x[1][1]]
+            if targV.getType() != 1:
+                DStarLite.updateVertex(targV, changedCell) #Update the difference of the changed cell and the effected cells
+        DStarLite.computeShortestPathStep(10)
+
+    print(gridWorld)

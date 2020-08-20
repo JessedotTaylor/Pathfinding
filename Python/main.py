@@ -36,7 +36,7 @@ U = PriorityQ.PriorityQ()
 
 DStarLite = Algorithim.DStarLite(gridWorld, U, HEURISTIC)
 alg = DStarLite.alg
-DStarLite.sLast = gridWorld.start
+#DStarLite.sLast = gridWorld.start
 
 H_CELLS = gridWorld.rows
 V_CELLS = gridWorld.cols
@@ -317,7 +317,7 @@ while not done:
                 start = time.time()
                 DStarLite.computeShortestPath()
                 end = time.time()
-                DStarLite.sLast = gridWorld.start
+                #DStarLite.setSLast(gridWorld.start)
                 calcFirstSearch = end - start
                 drawPath = True
                 getAndRenderResults()
@@ -367,7 +367,7 @@ while not done:
                 if changes != []:
                     print("Changes Detected")
                     DStarLite.km = DStarLite.km + DStarLite.genH(HEURISTIC, [iRob, jRob], DStarLite.sLast)
-                    DStarLite.sLast = [iRob, jRob]
+                    DStarLite.setSLast([iRob, jRob])
 
                 for changedCell in changes:  #The actual cells whoose changes were detected by the sensor sweep
                     for x in changedCell.getNeighbours(): #The neighbours of the changed cells, the effected cells
