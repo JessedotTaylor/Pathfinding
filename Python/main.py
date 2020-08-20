@@ -24,8 +24,8 @@ HEURISTIC = 'MANHATTAN'
 CORNER_COST = 1
 sequence = [[-1,-1,CORNER_COST],[-1,0,1],[-1,1,CORNER_COST],[0,-1,1],[0,1,1],[1,-1,CORNER_COST],[1,0,1],[1,1,CORNER_COST]]
 
-inputMapName = 'grids/grid_lpa_journal.map'
-#inputMapName = 'grids/grid_Dstar_journal.map'
+#inputMapName = 'grids/grid_lpa_journal.map'
+inputMapName = 'grids/grid_Dstar_journal.map'
 #inputMapName = 'grids/grid_Dstar_slides.map'
 gridWorld = classes.Grid(inputMapName, sequence)
 MASTER_GRID = classes.Grid(inputMapName, sequence)
@@ -34,7 +34,7 @@ MASTER_GRID = classes.Grid(inputMapName, sequence)
 U = PriorityQ.PriorityQ()
 
 
-LPA = Algorithim.LPAStar(gridWorld, U, HEURISTIC)
+DStarLite = Algorithim.DStarLite(gridWorld, U, HEURISTIC)
 
 H_CELLS = gridWorld.rows
 V_CELLS = gridWorld.cols
@@ -312,7 +312,7 @@ while not done:
                         
             if event.key == pygame.K_F10:
                 start = time.time()
-                LPA.computeShortestPath()
+                DStarLite.computeShortestPath()
                 end = time.time()
                 calcFirstSearch = end - start
                 drawPath = True
@@ -356,23 +356,22 @@ while not done:
     if lenP > 0 and currRobotPos >= 0:
         #print(currRobotPos)
         if currRobotPos < lenP:
-            #iRob, jRob = getGridCoord(path[currRobotPos][0])
             iRob, jRob = path[currRobotPos][1]
-            #print(path)
-            if (iRob, jRob) != (prevIRob, prevJRob):
-                changes = gridWorld.sensorSweep(iRob, jRob, sequence)
-                for changedCell in changes:  #The actual cells whoose changes were detected by the sensor sweep
-                    for x in changedCell.getNeighbours(): #The neighbours of the changed cells, the effected cells
-                        targV = gridWorld.map[x[1][0]][x[1][1]]
-                        if targV.getType() != 1:
-                            LPA.updateVertex(targV, changedCell) #Update the difference of the changed cell and the effected cells
-                    start = time.time()
-                    LPA.computeShortestPath()
-                    end = time.time()
-                    calcSecondSearch = end - start
-                    path = []
-                    lenP = 0
-                    currRobotPos = 0   
+
+            # if (iRob, jRob) != (prevIRob, prevJRob):
+            #     changes = gridWorld.sensorSweep(iRob, jRob, sequence)
+            #     for changedCell in changes:  #The actual cells whoose changes were detected by the sensor sweep
+            #         for x in changedCell.getNeighbours(): #The neighbours of the changed cells, the effected cells
+            #             targV = gridWorld.map[x[1][0]][x[1][1]]
+            #             if targV.getType() != 1:
+            #                 LPA.updateVertex(targV, changedCell) #Update the difference of the changed cell and the effected cells
+            #         start = time.time()
+            #         DStarLite.computeShortestPath()
+            #         end = time.time()
+            #         calcSecondSearch = end - start
+            #         path = []
+            #         lenP = 0
+            #         currRobotPos = 0   
             prevIRob, prevJRob = iRob, jRob
 
         else: #Handle for goal frame not in path
@@ -461,35 +460,35 @@ while not done:
             COM_other = gridWorld.map[x[1][0]][x[1][1]].getCOM()
             pygame.draw.lines(screen, colour2, False, [COM_other, COM], 2)
     
-    if drawPath and lenP == 0:
-        start = gridWorld.start
-        goal = gridWorld.goal
-        minNeighbour = goal
-        while minNeighbour != start:
-            minKey = [99, 99]
-            for x in sequence:
-                dx = x[0]
-                dy = x[1]
+    # if drawPath and lenP == 0:
+    #     start = gridWorld.start
+    #     goal = gridWorld.goal
+    #     minNeighbour = goal
+    #     while minNeighbour != start:
+    #         minKey = [99, 99]
+    #         for x in sequence:
+    #             dx = x[0]
+    #             dy = x[1]
 
-                if gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._Type != 1:
-                    if U._isSmaller(gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._key, minKey):
-                        #print("Smaller Found")
-                        minKey = gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._key
-                        target = (minNeighbour[0] + dx, minNeighbour[1] + dy)
+    #             if gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._Type != 1:
+    #                 if U._isSmaller(gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._key, minKey):
+    #                     #print("Smaller Found")
+    #                     minKey = gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._key
+    #                     target = (minNeighbour[0] + dx, minNeighbour[1] + dy)
                 
-            COM_other = gridWorld.map[target[0]][target[1]].getCOM()
-            COM_local = gridWorld.map[minNeighbour[0]][minNeighbour[1]].getCOM()
+    #         COM_other = gridWorld.map[target[0]][target[1]].getCOM()
+    #         COM_local = gridWorld.map[minNeighbour[0]][minNeighbour[1]].getCOM()
 
-            path.append([[COM_other, COM_local], [target[0],target[1]], [minNeighbour[0], minNeighbour[1]]])
-            minNeighbour = target
-        #path.append()
-        path.reverse() #Move path from goal to start to start to goal
-        lenP = len(path)
-        getAndRenderResults()
+    #         path.append([[COM_other, COM_local], [target[0],target[1]], [minNeighbour[0], minNeighbour[1]]])
+    #         minNeighbour = target
+    #     #path.append()
+    #     path.reverse() #Move path from goal to start to start to goal
+    #     lenP = len(path)
+    #     getAndRenderResults()
 
-    elif drawPath:
-        for x in path:
-            pygame.draw.lines(screen, red, False, x[0], 2)
+    # elif drawPath:
+    #     for x in path:
+    #         pygame.draw.lines(screen, red, False, x[0], 2)
 
     pygame.display.flip()
 

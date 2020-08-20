@@ -113,6 +113,7 @@ class LPAStar:
         
             u.setRHS(currMin)
             #print(u)
+
         if u in self.U:
             self.U.remove(u)
 
@@ -192,11 +193,37 @@ class DStarLite:
         u.setKey([k1, k2])
         return [k1, k2]
 
+    def computeShortestPath(self):
+        while (self.U.topKey() < self._calcKeysIJ(self.iStart, self.jStart) or (self.grid.map[self.iStart][self.jStart].getRHS() != self.grid.map[self.iStart][self.jStart].getG())):
+
+            kOld = self.U.topKey()
+
+            u = self.U.pop()
+            u._status = 2
+
+
+            if (kOld < self._calcKeysU(u)):
+                self.U.insert(u, u.getKey())
+
+            elif (u.getG() > u.getRHS()):
+                u.setG(u.getRHS())
+                for x in u.getNeighbours():
+                    if x[0][2] < 99: #Changed to use cost vector
+                        self.updateVertex(self.grid.map[x[1][0]][x[1][1]], u)
+            
+            else:
+                u.setG(99)
+                for x in u.getNeighbours():
+                    if x[0][2] < 99: #Changed to use cost vector
+                        self.updateVertex(self.grid.map[x[1][0]][x[1][1]], u)
+                        self.updateVertex(u, u)
+                
+
     def computeShortestPathStep(self, steps):
         for x in range(steps):
-            if (self.U.topKey() < self._calcKeysU(self.iStart, self.jStart) or (self.grid.map[self.iStart][self.jStart].getRHS() != self.grid.map[self.iStart][self.jStart].getG())):
+            if (self.U.topKey() < self._calcKeysIJ(self.iStart, self.jStart) or (self.grid.map[self.iStart][self.jStart].getRHS() != self.grid.map[self.iStart][self.jStart].getG())):
                 print()
-                print((self.U.topKey() < self._calcKeysU(self.iStart, self.jStart)), (self.grid.map[self.iStart][self.jStart].getRHS() != self.grid.map[self.iStart][self.jStart].getG()))
+                print((self.U.topKey() < self._calcKeysIJ(self.iStart, self.jStart)), (self.grid.map[self.iStart][self.jStart].getRHS() != self.grid.map[self.iStart][self.jStart].getG()))
 
                 kOld = self.U.topKey()
 
@@ -213,11 +240,48 @@ class DStarLite:
                 elif (u.getG() > u.getRHS()):
                     u.setG(u.getRHS())
                     for x in u.getNeighbours():
-                        if x[0][2] >= 99: #Changed to use cost vector
-                            pass
+                        if x[0][2] < 99: #Changed to use cost vector
+                            self.updateVertex(self.grid.map[x[1][0]][x[1][1]], u)
+                
+                else:
+                    u.setG(99)
+                    for x in u.getNeighbours():
+                        if x[0][2] < 99: #Changed to use cost vector
+                            self.updateVertex(self.grid.map[x[1][0]][x[1][1]], u)
+                            self.updateVertex(u, u)
+                
+                print("End Step Q")
+                print(self.U)
+            else:
+                print("Goal Found")
+                print((self.U.topKey(), self._calcKeysIJ(self.iGoal, self.jGoal)), (self.grid.map[self.iGoal][self.jGoal].getRHS(), self.grid.map[self.iGoal][self.jGoal].getG()))
+                break
 
 
+    def updateVertex(self, u, sPrime):
+        # print("Update Vertex Called")
+        # print(u)
+        if u._status == 0:
+            u._status = 1
+        
+        if u != self.grid.map[self.iGoal][self.jGoal]:
+            currMin = 999
+            for x in u.getNeighbours():
+                cost = self.grid.map[x[1][0]][x[1][1]].getG() + x[0][2]
+                
+                #print(sPrime.g, x[0][2])
+                #cost = sPrime.g + x[0][2]
+                if cost < currMin:
+                    currMin = cost
+                #print(x, sPrime.g, x[0][2])
+        
+            u.setRHS(currMin)
 
+        if u in self.U:
+            self.U.remove(u)
+
+        if u.getG() != u.getRHS():
+            self.U.insert(u, self._calcKeysU(u))
 
 
 
@@ -233,6 +297,7 @@ if __name__ == "__main__":
     gridWorld = classes.Grid('grids/grid_DStar_journal.map', sequence)
     DStarLite = DStarLite(gridWorld, U, hueristic)
     print(gridWorld)
+    DStarLite.computeShortestPathStep(10)
     # LPA = LPAStar(gridWorld, U, hueristic)
     # LPA.computeShortestPath()
     # print('\n' * 50)
