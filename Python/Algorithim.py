@@ -18,22 +18,23 @@ class LPAStar:
         self.grid = grid
         self.U = queue
 
-    def _calcKeysIJ(self, i, j):
-        k2 = min(self.grid.map[i][j].getG(), self.grid.map[i][j].getRHS())
-        k1 = k2 + self.grid.map[i][j].getH()
-        self.grid.map[i][j].setKey([k1, k2])
-        return [k1, k2]
-    
-    def _calcKeysU(self, u):
-        k2 = min(u.getG(), u.getRHS())
-        k1 = k2 + u.getH()
-        u.setKey([k1, k2])
+        self.alg = 'L'
+
+        self.sLast = grid.start
+
+    def _calcKeys(self, x1, x2=None):
+        if x2 != None: #Coordinates passed
+            x1 = self.grid.map[x1][x2]  #set x1 to vector, like default behaviour
+
+        k2 = min(x1.getG(), x1.getRHS())
+        k1 = k2 + x1.getH() + self.km
+        x1.setKey([k1, k2])
         return [k1, k2]
 
     def computeShortestPath(self):
-        # print((self.U.topKey(), self._calcKeysIJ(self.iGoal, self.jGoal)))
+        # print((self.U.topKey(), self._calcKeys(self.iGoal, self.jGoal)))
         # print(self.grid.map[self.iGoal][self.jGoal].rhs, self.grid.map[self.iGoal][self.jGoal].g)
-        while (self.U.topKey() < self._calcKeysIJ(self.iGoal, self.jGoal)) or (self.grid.map[self.iGoal][self.jGoal].getRHS() != self.grid.map[self.iGoal][self.jGoal].getG()):
+        while (self.U.topKey() < self._calcKeys(self.iGoal, self.jGoal)) or (self.grid.map[self.iGoal][self.jGoal].getRHS() != self.grid.map[self.iGoal][self.jGoal].getG()):
 
             u = self.U.pop()
             u._status = 2
@@ -51,13 +52,13 @@ class LPAStar:
                     if x[2] != 1:
                         self.updateVertex(self.grid.map[x[1][0]][x[1][1]], u)
                         self.updateVertex(u, u)
-        #print((self.U.topKey(), self._calcKeysIJ(self.iGoal, self.jGoal)), (self.grid.map[self.iGoal][self.jGoal].rhs, self.grid.map[self.iGoal][self.jGoal].g))
+        #print((self.U.topKey(), self._calcKeys(self.iGoal, self.jGoal)), (self.grid.map[self.iGoal][self.jGoal].rhs, self.grid.map[self.iGoal][self.jGoal].g))
     
     def computeShortestPathStep(self, steps):
         for x in range(steps):
-            if (self.U.topKey() < self._calcKeysIJ(self.iGoal, self.jGoal)) or (self.grid.map[self.iGoal][self.jGoal].getRHS() != self.grid.map[self.iGoal][self.jGoal].getG()):
+            if (self.U.topKey() < self._calcKeys(self.iGoal, self.jGoal)) or (self.grid.map[self.iGoal][self.jGoal].getRHS() != self.grid.map[self.iGoal][self.jGoal].getG()):
                 print()
-                print((self.U.topKey() < self._calcKeysIJ(self.iGoal, self.jGoal)), (self.grid.map[self.iGoal][self.jGoal].getRHS() != self.grid.map[self.iGoal][self.jGoal].getG()))
+                print((self.U.topKey() < self._calcKeys(self.iGoal, self.jGoal)), (self.grid.map[self.iGoal][self.jGoal].getRHS() != self.grid.map[self.iGoal][self.jGoal].getG()))
 
                 u = self.U.pop()
                 u._status = 2
@@ -91,7 +92,7 @@ class LPAStar:
                 print(self.U)
             else:
                 print("Goal Found")
-                print((self.U.topKey(), self._calcKeysIJ(self.iGoal, self.jGoal)), (self.grid.map[self.iGoal][self.jGoal].getRHS(), self.grid.map[self.iGoal][self.jGoal].getG()))
+                print((self.U.topKey(), self._calcKeys(self.iGoal, self.jGoal)), (self.grid.map[self.iGoal][self.jGoal].getRHS(), self.grid.map[self.iGoal][self.jGoal].getG()))
                 break
 
 
@@ -118,7 +119,7 @@ class LPAStar:
             self.U.remove(u)
 
         if u.getG() != u.getRHS():
-            self.U.insert(u, self._calcKeysU(u))
+            self.U.insert(u, self._calcKeys(u))
 
 
     def writeGrid(self):
@@ -162,39 +163,71 @@ class DStarLite:
         self.grid = grid
         self.U = queue
 
+        self.sLast = [-99,-99]
 
-    def genHIJ(self, i, j, hueristic):
-        if hueristic == "EUCLIDEAN":
-            self.grid.map[i][j].setH(sqrt((i - self.iStart)**2 + (j - self.jStart)**2))
+        self.alg = 'D'
+
+    def genH(self, hueristic, workingPair=None, targetPair=None):
+        write = False
+        if targetPair == None:
+            targetPair = [self.iStart, self.jStart]
+            write = True
+
+        if workingPair == None:
+            if hueristic == "EUCLIDEAN":
+                for i in range(self.grid.rows):
+                    for j in range(self.grid.cols):
+                        self.grid.map[i][j].setH(sqrt((i - targetPair[0])**2 + (j - targetPair[1])**2))
         
-        elif hueristic == "MANHATTAN":
-            self.grid.map[i][j].setH(max(abs(i - self.iStart), abs(j - self.jStart)))
-
-    def genH(self, hueristic):
-        if hueristic == "EUCLIDEAN":
-            for i in range(self.grid.rows):
-                for j in range(self.grid.cols):
-                    self.grid.map[i][j].setH(sqrt((i - self.iStart)**2 + (j - self.jStart)**2))
+            elif hueristic == "MANHATTAN":
+                for i in range(self.grid.rows):
+                    for j in range(self.grid.cols):
+                        self.grid.map[i][j].setH(max(abs(i - targetPair[0]), abs(j - targetPair[1])))
         
-        elif hueristic == "MANHATTAN":
-            for i in range(self.grid.rows):
-                for j in range(self.grid.cols):
-                    self.grid.map[i][j].setH(max(abs(i - self.iStart), abs(j - self.jStart)))
+        else:
+            if hueristic == "EUCLIDEAN":
+                calcH = sqrt((workingPair[0] - targetPair[0])**2 + (workingPair[1] - targetPair[1])**2)
+            elif hueristic == "MANHATTAN":
+                calcH = max(abs(workingPair[0] - targetPair[0]), abs(workingPair[1] - targetPair[1]))
+            
+            if write:
+                self.grid.map[workingPair[0]][workingPair[1]].setH(calcH)
+            else:
+                return calcH
 
-    def _calcKeysIJ(self, i, j):
-        k2 = min(self.grid.map[i][j].getG(), self.grid.map[i][j].getRHS())
-        k1 = k2 + self.grid.map[i][j].getH() + self.km
-        self.grid.map[i][j].setKey([k1, k2])
-        return [k1, k2]
-    
-    def _calcKeysU(self, u):
-        k2 = min(u.getG(), u.getRHS())
-        k1 = k2 + u.getH() + self.km
-        u.setKey([k1, k2])
+            
+
+         
+
+    # def genH(self, i, j, hueristic):
+    #     if hueristic == "EUCLIDEAN":
+    #         self.grid.map[i][j].setH(sqrt((i - self.iStart)**2 + (j - self.jStart)**2))
+        
+    #     elif hueristic == "MANHATTAN":
+    #         self.grid.map[i][j].setH(max(abs(i - self.iStart), abs(j - self.jStart)))
+
+    # def genH(self, hueristic):
+    #     if hueristic == "EUCLIDEAN":
+    #         for i in range(self.grid.rows):
+    #             for j in range(self.grid.cols):
+    #                 self.grid.map[i][j].setH(sqrt((i - self.iStart)**2 + (j - self.jStart)**2))
+        
+    #     elif hueristic == "MANHATTAN":
+    #         for i in range(self.grid.rows):
+    #             for j in range(self.grid.cols):
+    #                 self.grid.map[i][j].setH(max(abs(i - self.iStart), abs(j - self.jStart)))
+
+    def _calcKeys(self, x1, x2=None):
+        if x2 != None: #Coordinates passed
+            x1 = self.grid.map[x1][x2]  #set x1 to vector, like default behaviour
+
+        k2 = min(x1.getG(), x1.getRHS())
+        k1 = k2 + x1.getH() + self.km
+        x1.setKey([k1, k2])
         return [k1, k2]
 
     def computeShortestPath(self):
-        while (self.U.topKey() < self._calcKeysIJ(self.iStart, self.jStart) or (self.grid.map[self.iStart][self.jStart].getRHS() != self.grid.map[self.iStart][self.jStart].getG())):
+        while (self.U.topKey() < self._calcKeys(self.iStart, self.jStart) or (self.grid.map[self.iStart][self.jStart].getRHS() != self.grid.map[self.iStart][self.jStart].getG())):
 
             kOld = self.U.topKey()
 
@@ -202,7 +235,7 @@ class DStarLite:
             u._status = 2
 
 
-            if (kOld < self._calcKeysU(u)):
+            if (kOld < self._calcKeys(u)):
                 self.U.insert(u, u.getKey())
 
             elif (u.getG() > u.getRHS()):
@@ -221,9 +254,9 @@ class DStarLite:
 
     def computeShortestPathStep(self, steps):
         for x in range(steps):
-            if (self.U.topKey() < self._calcKeysIJ(self.iStart, self.jStart) or (self.grid.map[self.iStart][self.jStart].getRHS() != self.grid.map[self.iStart][self.jStart].getG())):
+            if (self.U.topKey() < self._calcKeys(self.iStart, self.jStart) or (self.grid.map[self.iStart][self.jStart].getRHS() != self.grid.map[self.iStart][self.jStart].getG())):
                 print()
-                print((self.U.topKey() < self._calcKeysIJ(self.iStart, self.jStart)), (self.grid.map[self.iStart][self.jStart].getRHS() != self.grid.map[self.iStart][self.jStart].getG()))
+                print((self.U.topKey() < self._calcKeys(self.iStart, self.jStart)), (self.grid.map[self.iStart][self.jStart].getRHS() != self.grid.map[self.iStart][self.jStart].getG()))
 
                 kOld = self.U.topKey()
 
@@ -234,7 +267,7 @@ class DStarLite:
                 print("D-Q")
                 print(u)
 
-                if (kOld < self._calcKeysU(u)):
+                if (kOld < self._calcKeys(u)):
                     self.U.insert(u, u.getKey())
 
                 elif (u.getG() > u.getRHS()):
@@ -254,7 +287,7 @@ class DStarLite:
                 print(self.U)
             else:
                 print("Goal Found")
-                print((self.U.topKey(), self._calcKeysIJ(self.iGoal, self.jGoal)), (self.grid.map[self.iGoal][self.jGoal].getRHS(), self.grid.map[self.iGoal][self.jGoal].getG()))
+                print((self.U.topKey(), self._calcKeys(self.iGoal, self.jGoal)), (self.grid.map[self.iGoal][self.jGoal].getRHS(), self.grid.map[self.iGoal][self.jGoal].getG()))
                 break
 
 
@@ -281,7 +314,7 @@ class DStarLite:
             self.U.remove(u)
 
         if u.getG() != u.getRHS():
-            self.U.insert(u, self._calcKeysU(u))
+            self.U.insert(u, self._calcKeys(u))
 
 
 
