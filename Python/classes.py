@@ -170,7 +170,8 @@ class Grid:
         self.genNeighbours(sequence)
 
     def genFromFile(self, filename):
-        with open(filename, 'r') as f:
+
+        with open('Python/' + filename, 'r') as f:
             inp = f.readlines()
 
         #print(int(inp[0]), int(inp[1]))

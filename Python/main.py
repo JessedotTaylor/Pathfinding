@@ -1,7 +1,7 @@
 import pygame
 import classes
 import PriorityQ
-import LPAStar
+import Algorithim
 from math import sqrt
 import time
 
@@ -24,8 +24,8 @@ HEURISTIC = 'MANHATTAN'
 CORNER_COST = 1
 sequence = [[-1,-1,CORNER_COST],[-1,0,1],[-1,1,CORNER_COST],[0,-1,1],[0,1,1],[1,-1,CORNER_COST],[1,0,1],[1,1,CORNER_COST]]
 
-#inputMapName = 'grids/grid_lpa_journal.map'
-inputMapName = 'grids/grid_Dstar_journal.map'
+inputMapName = 'grids/grid_lpa_journal.map'
+#inputMapName = 'grids/grid_Dstar_journal.map'
 #inputMapName = 'grids/grid_Dstar_slides.map'
 gridWorld = classes.Grid(inputMapName, sequence)
 MASTER_GRID = classes.Grid(inputMapName, sequence)
@@ -34,7 +34,7 @@ MASTER_GRID = classes.Grid(inputMapName, sequence)
 U = PriorityQ.PriorityQ()
 
 
-LPA = LPAStar.LPAStar(gridWorld, U, HEURISTIC)
+LPA = Algorithim.LPAStar(gridWorld, U, HEURISTIC)
 
 H_CELLS = gridWorld.rows
 V_CELLS = gridWorld.cols

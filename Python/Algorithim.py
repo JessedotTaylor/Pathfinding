@@ -214,6 +214,7 @@ class DStarLite:
                     u.setG(u.getRHS())
                     for x in u.getNeighbours():
                         if x[0][2] >= 99: #Changed to use cost vector
+                            pass
 
 
 
