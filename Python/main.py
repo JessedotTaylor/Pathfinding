@@ -311,7 +311,8 @@ while not done:
                     drawLocal.remove([i, j])
                 else:
                     drawLocal.append([i,j])
-                gridWorld.map[i,j].printNeighbours()
+                    gridWorld.map[i][j].printNeighbours()
+                
                         
             if event.key == pygame.K_F10:
                 start = time.time()
@@ -363,7 +364,7 @@ while not done:
             iRob, jRob = path[currRobotPos][2]
 
             if (iRob, jRob) != (prevIRob, prevJRob):
-                changes = gridWorld.sensorSweep(iRob, jRob, sequence)
+                changes = gridWorld.sensorSweep(iRob, jRob)
                 if changes != []:
                     print("Changes Detected")
                     DStarLite.km = DStarLite.km + DStarLite.genH(HEURISTIC, [iRob, jRob], DStarLite.sLast)
@@ -486,7 +487,7 @@ while not done:
             targObj = gridWorld.map[DStarLite.sLast[0]][DStarLite.sLast[1]]
         else:
             print("Detected DStarLite")
-            if gridWorld.map[start[0]][start[1]].getG == 99:
+            if gridWorld.map[start[0]][start[1]].getG() == 99:
                 print("No path exists!")
                 exit()
             minNeighbour = gridWorld.map[DStarLite.sLast[0]][DStarLite.sLast[1]]
@@ -495,18 +496,23 @@ while not done:
         #print(minNeighbour, targObj)
         while minNeighbour != targObj:
             minV = classes.Vertex(0, -99, -99, key=[99,99])
+            currCost = 99
             targVcoord = [minNeighbour.getRow(), minNeighbour.getCol()]
             #print(targVKey)
-            for x in sequence:
-                dx = x[0]
-                dy = x[1]
+            for x in minNeighbour.getNeighbours():
+                dx = x[0][0]
+                dy = x[0][1]
+                cost = x[0][2]
+                dx, dy, cost = x[0]
                
                 targV = gridWorld.map[targVcoord[0] + dx][targVcoord[1] + dy]
 
                 if targV.getType() != 1:
-                    if (targV < minV):
+                    if (targV.leG(minV) and cost <= currCost):
+
                         #print("Smaller Found")
                         minV = targV
+                        currCost = cost
                         #print(minV)
                         #target = (minNeighbour[0] + dx, minNeighbour[1] + dy)
                 
@@ -521,7 +527,7 @@ while not done:
             path.reverse() #Move path from goal to start to start to goal
         lenP = len(path)
         getAndRenderResults()
-        print(path)
+        #print(path)
 
     elif drawPath:
         for x in path:

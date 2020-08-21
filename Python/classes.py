@@ -131,7 +131,7 @@ class Vertex:
         outlist.append(" \\ " +  '{}'.format(self._key).center(8) + " / ")
         return outlist
     
-    def printNeigbours(self):
+    def printNeighbours(self):
         if len(self._neighbours) != 8:
             print("Nope!")
             return
@@ -166,6 +166,7 @@ class Vertex:
 
     #Overloading == (Equal to) operator
     def __eq__(self, other):
+        self._accessRead +=1 
         if self._key[0] == other._key[0]:
             if self._key[1] == other._key[1]:
                 return True
@@ -173,6 +174,7 @@ class Vertex:
     
     #Overloading < (less than) operator
     def __lt__(self, other):
+        self._accessRead += 1 
         if type(other) != Vertex:
             other = Vertex(0, 99, 99, key=[other[0], other[1]])
         if self._key[0] < other._key[0]:
@@ -184,14 +186,44 @@ class Vertex:
                 return False
         else:
             return False
+
+    #Overloading <= (less equal) operator
+    def __le__(self, other):
+        self._accessRead +=1 
+        if self > other:
+            return False
+        else:
+            return True
+    
+    #Overloading > (greater than) operator
+    def __gt__(self, other):
+        self._accessRead +=1 
+        if type(other) != Vertex:
+            other = Vertex(0, 99, 99, key=[other[0], other[1]])
+        if self._key[0] > other._key[0]:
+            return True
+        elif self._key[0] == other._key[0]:
+            if self._key[1] > other._key[1]:
+                return True
+            else:
+                return False
+        else:
+            return False
+
     
     #Guess overload != (Not equal) operator
     def __ne__(self, other):
+        self._accessRead +=1 
         if self._key[0] == other._key[0]:
             if self._key[1] == other._key[1]:
                 return False
         return True
 
+    def leG(self, other):
+        self._accessRead += 1
+        if self._key <= other._key:
+            return True
+        return False
 
 
 
@@ -201,7 +233,8 @@ class Grid:
         self.genFromFile(filename)
         self.start = self.findType(6)
         self.goal = self.findType(7)
-        self.genNeighbours(sequence)
+        self.sequence = sequence
+        self.genNeighbours()
 
     def genFromFile(self, filename):
 
@@ -230,6 +263,7 @@ class Grid:
     
     def setVertex(self, i, j,Type):
         self.map[i][j].setType(Type)
+        self.genNeighbours([i,j])
         self.writeToFile()
     
     def findType(self, targType):
@@ -243,7 +277,7 @@ class Grid:
 
     def writeToFile(self):
         orgFile = self.mapName
-        outFile = 'grids/'+ orgFile.split('.')[0] + 'MOD.map'
+        outFile = 'Python/grids/'+ orgFile.split('.')[0] + 'MOD.map'
         with open(outFile, 'w') as f:
             outLines = [str(self.rows) + '\n', str(self.cols) + '\n']
             for i in range(self.rows):
@@ -255,26 +289,41 @@ class Grid:
             f.writelines(outLines)
 
 
-    def genNeighbours(self, sequence):
-        for i in range(self.rows):
-            for j in range(self.cols):
-                neighbours = []
-                for x in sequence:
-                    dx = x[0]
-                    dy = x[1]
-                    cost = x[2]
-                    if i + dx >= 0 and i + dx <= self.rows-1 and j + dy >= 0 and j + dy <= self.cols-1: #If within bounding box of map
-                        if self.map[i][j].getType() == 1 or self.map[i+dx][j+dy].getType() == 1: #If cell type is blocked, connections noted as red. May be unnecissary
-                            neighbours.append([[dx, dy, 99], [i + dx, j + dy], 1])
-                        else:
-                            neighbours.append([[dx, dy, cost], [i + dx, j + dy], 0])
+    def genNeighbours(self, x1=None):
+        if x1 == None:
+            for i in range(self.rows):
+                for j in range(self.cols):
+                    neighbours = []
+                    for x in self.sequence:
+                        dx = x[0]
+                        dy = x[1]
+                        cost = x[2]
+                        if i + dx >= 0 and i + dx <= self.rows-1 and j + dy >= 0 and j + dy <= self.cols-1: #If within bounding box of map
+                            if self.map[i][j].getType() == 1 or self.map[i+dx][j+dy].getType() == 1: #If cell type is blocked, connections noted as red. May be unnecissary
+                                neighbours.append([[dx, dy, 99], [i + dx, j + dy], 1])
+                            else:
+                                neighbours.append([[dx, dy, cost], [i + dx, j + dy], 0])
 
-                self.map[i][j].giveNeighbours(neighbours)
+                    self.map[i][j].giveNeighbours(neighbours)
+        else:
+            i, j = x1
+            neighbours = []
+            for x in self.sequence:
+                dx = x[0]
+                dy = x[1]
+                cost = x[2]
+                if i + dx >= 0 and i + dx <= self.rows-1 and j + dy >= 0 and j + dy <= self.cols-1: #If within bounding box of map
+                    if self.map[i][j].getType() == 1 or self.map[i+dx][j+dy].getType() == 1: #If cell type is blocked, connections noted as red. May be unnecissary
+                        neighbours.append([[dx, dy, 99], [i + dx, j + dy], 1])
+                    else:
+                        neighbours.append([[dx, dy, cost], [i + dx, j + dy], 0])
+
+            self.map[i][j].giveNeighbours(neighbours)
 
         # for i in self.map[0]:
         #     print(i.neighbours[0][0])
 
-    def sensorSweep(self, i, j, sequence):
+    def sensorSweep(self, i, j):
         changes = []
         for x in self.map[i][j].getNeighbours():
             targV = self.map[x[1][0]][x[1][1]]
@@ -287,7 +336,7 @@ class Grid:
                 changes.append(targV)
 
         if len(changes) > 0:
-            self.genNeighbours(sequence)
+            self.genNeighbours([i, j])
             return changes
         return []
     
@@ -346,11 +395,12 @@ if __name__ == '__main__':
     c = Vertex(2,0,0, key=[1,1])
     v = Vertex(0,0,0, key=[10,1])
     v1 = Vertex(0,0,0, key=[10,1])
-    print(v1 == v)
+    print(v1 <= v)
+    print( not (v1 > v))
     print(c < v)
     print(c < [10,1])
     print(z != x)
-    # gridWorld.map[1][1].printNeigbours()
+    # gridWorld.map[1][1].printNeighbours()
     # print(gridWorld.map[1][1])
 
     #Grid.genFromFile('grids/grid_Dstar_journal.map')
