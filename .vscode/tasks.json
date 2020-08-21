@@ -1,0 +1,31 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "mingw32-make",
+            // "args": [
+            //     "-c"
+            // ],
+            "options": {
+                "cwd": "${workspaceRoot}\\C++"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run",
+            "type": "shell",
+            "command": ["${workspaceRoot}\\C++\\Main.exe grids/grid_lpa_journal.map m"],
+            "group": "test",
+        }
+    ]
+}
