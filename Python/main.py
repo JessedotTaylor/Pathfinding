@@ -368,6 +368,7 @@ while not done:
                     print("Changes Detected")
                     DStarLite.km = DStarLite.km + DStarLite.genH(HEURISTIC, [iRob, jRob], DStarLite.sLast)
                     DStarLite.setSLast([iRob, jRob])
+                    DStarLite.genH(HEURISTIC)
 
                 for changedCell in changes:  #The actual cells whoose changes were detected by the sensor sweep
                     for x in changedCell.getNeighbours(): #The neighbours of the changed cells, the effected cells
@@ -476,44 +477,51 @@ while not done:
             pygame.draw.lines(screen, colour2, False, [COM_other, COM], 2)
     
     if drawPath and lenP == 0:
-        start = gridWorld.start
+        start = DStarLite.sLast
         goal = gridWorld.goal
 
-        
         if gridWorld.map[start[0]][start[1]]._h > 0: #Determine algorithim used based on start point hueristic value. 0 if LPA, != 0 if DStarLite
             print("Detected LPAStar")
-            minNeighbour = goal
-            targObj = DStarLite.sLast
+            minNeighbour = gridWorld.map[goal[0]][goal[1]]
+            targObj = gridWorld.map[DStarLite.sLast[0]][DStarLite.sLast[1]]
         else:
             print("Detected DStarLite")
             if gridWorld.map[start[0]][start[1]].getG == 99:
                 print("No path exists!")
                 exit()
-            minNeighbour = DStarLite.sLast
-            targObj = goal
+            minNeighbour = gridWorld.map[DStarLite.sLast[0]][DStarLite.sLast[1]]
+            targObj = gridWorld.map[goal[0]][goal[1]]
         
+        #print(minNeighbour, targObj)
         while minNeighbour != targObj:
-            minKey = [99, 99]
+            minV = classes.Vertex(0, -99, -99, key=[99,99])
+            targVcoord = [minNeighbour.getRow(), minNeighbour.getCol()]
+            #print(targVKey)
             for x in sequence:
                 dx = x[0]
                 dy = x[1]
+               
+                targV = gridWorld.map[targVcoord[0] + dx][targVcoord[1] + dy]
 
-                if gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._Type != 1:
-                    if U._isSmaller(gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._key, minKey):
+                if targV.getType() != 1:
+                    if (targV < minV):
                         #print("Smaller Found")
-                        minKey = gridWorld.map[minNeighbour[0] + dx][minNeighbour[1] + dy]._key
-                        target = (minNeighbour[0] + dx, minNeighbour[1] + dy)
+                        minV = targV
+                        #print(minV)
+                        #target = (minNeighbour[0] + dx, minNeighbour[1] + dy)
                 
-            COM_other = gridWorld.map[target[0]][target[1]].getCOM()
-            COM_local = gridWorld.map[minNeighbour[0]][minNeighbour[1]].getCOM()
+            COM_other = minV.getCOM()
+            COM_local = minNeighbour.getCOM()
 
-            path.append([[COM_other, COM_local], [target[0],target[1]], [minNeighbour[0], minNeighbour[1]]])
-            minNeighbour = target
-        #path.append()
+            path.append([[COM_other, COM_local], minV.getIJ(), minNeighbour.getIJ()])
+            #print(path)
+            minNeighbour = minV
+
         if alg == 'L':
             path.reverse() #Move path from goal to start to start to goal
         lenP = len(path)
         getAndRenderResults()
+        print(path)
 
     elif drawPath:
         for x in path:

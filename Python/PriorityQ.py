@@ -14,18 +14,7 @@ class PriorityQ:
                 return sPrime
         else:
             return sPrime
-    
-    def _isSmaller(self, s, sPrime):
-        if s[0] < sPrime[0]:
-            return True
-        elif s[0] == sPrime[0]:
-            if s[1] < sPrime[1]:
-                return True
-            else:
-                return False
-        else:
-            return False
-    
+
     def _plusLen(self, inc=1):
         self.lenU += inc
         if self.lenU > self.maxU:
@@ -35,7 +24,7 @@ class PriorityQ:
     def insert(self, s, k):
         if self.lenU > 0:
             i = 0
-            while  (i < self.lenU) and self._isSmaller(self.U[i].getKey(), k):
+            while  (i < self.lenU) and (self.U[i] < k):
                 i += 1
             self.U.insert(i, s)
             self._plusLen()

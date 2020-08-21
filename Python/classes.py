@@ -38,6 +38,10 @@ class Vertex:
         self._accessRead += 1
         return self._col
     
+    def getIJ(self):
+        self._accessRead += 1
+        return ([self._row, self._col])
+    
     def setRHS(self, val):
         self._accessWrite += 1
         if val > 99:
@@ -160,6 +164,36 @@ class Vertex:
         print(('{}'.format(n[5][1]) + ' ' * 11 + '{}'.format(n[6][1]) + ' ' * 11 + '{}'.format(n[7][1])).center(width))
         print()
 
+    #Overloading == (Equal to) operator
+    def __eq__(self, other):
+        if self._key[0] == other._key[0]:
+            if self._key[1] == other._key[1]:
+                return True
+        return False
+    
+    #Overloading < (less than) operator
+    def __lt__(self, other):
+        if type(other) != Vertex:
+            other = Vertex(0, 99, 99, key=[other[0], other[1]])
+        if self._key[0] < other._key[0]:
+            return True
+        elif self._key[0] == other._key[0]:
+            if self._key[1] < other._key[1]:
+                return True
+            else:
+                return False
+        else:
+            return False
+    
+    #Guess overload != (Not equal) operator
+    def __ne__(self, other):
+        if self._key[0] == other._key[0]:
+            if self._key[1] == other._key[1]:
+                return False
+        return True
+
+
+
 
     
 class Grid:
@@ -278,9 +312,6 @@ class Grid:
         
         return results
 
-
-            #WIP
-
                 
 
 
@@ -309,7 +340,16 @@ if __name__ == '__main__':
     sequence = [[-1,-1,CORNER_COST],[-1,0,1],[-1,1,CORNER_COST],[0,-1,1],[0,1,1],[1,-1,CORNER_COST],[1,0,1],[1,1,CORNER_COST]]
     gridWorld = Grid('grids/grid_DStar_journal.map', sequence)
     #gridWorld.sensorSweep(3,2)
-    print(gridWorld)
+    #print(gridWorld)
+    z = Vertex(3,0,0, key=[1,2])
+    x = Vertex(1,0,0, key=[0,1])
+    c = Vertex(2,0,0, key=[1,1])
+    v = Vertex(0,0,0, key=[10,1])
+    v1 = Vertex(0,0,0, key=[10,1])
+    print(v1 == v)
+    print(c < v)
+    print(c < [10,1])
+    print(z != x)
     # gridWorld.map[1][1].printNeigbours()
     # print(gridWorld.map[1][1])
 
