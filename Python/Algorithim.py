@@ -270,7 +270,7 @@ class DStarLite:
                 print(self.U)
             else:
                 print("Goal Found")
-                print((self.U.topKey(), self._calcKeys(self.iGoal, self.jGoal)), (self.grid.map[self.iGoal][self.jGoal].getRHS(), self.grid.map[self.iGoal][self.jGoal].getG()))
+                print((self.U.topKey(), self._calcKeys(self.iStart, self.jStart)), (self.grid.map[self.iStart][self.jStart].getRHS(), self.grid.map[self.iStart][self.jStart].getG()))
                 break
 
 
@@ -297,6 +297,9 @@ class DStarLite:
         if u.getG() != u.getRHS():
             self.U.insert(u, self._calcKeys(u))
 
+    def writeGrid(self):
+        return self.grid
+
 
 
 
@@ -308,11 +311,11 @@ if __name__ == "__main__":
     CORNER_COST = 1
     sequence = [[-1,-1,CORNER_COST],[-1,0,1],[-1,1,CORNER_COST],[0,-1,1],[0,1,1],[1,-1,CORNER_COST],[1,0,1],[1,1,CORNER_COST]]
     hueristic = 'MANHATTAN'
-    gridWorld = classes.Grid('grids/grid_DStar_journal.map', sequence)
+    gridWorld = classes.Grid('grids/grid_lpa_slides.map', sequence)
     DStarLite = DStarLite(gridWorld, U, hueristic)
     #print(DStarLite.genH(hueristic, [5,2], [2,1]))
     DStarLite.computeShortestPath()
-    changes = gridWorld.sensorSweep(3,1,sequence)
+    changes = gridWorld.sensorSweep(7,12)
     # print('\n' * 50)
     # print(gridWorld)
     print("Step 0 Q")
@@ -320,15 +323,18 @@ if __name__ == "__main__":
 
     if changes != []:
         print("Changes Detected")
-        DStarLite.km = DStarLite.km + DStarLite.genH(hueristic, [3, 1], DStarLite.sLast)
-        DStarLite.setSLast([3, 1])
+        DStarLite.km = DStarLite.km + DStarLite.genH(hueristic, [7, 12], DStarLite.sLast)
+        DStarLite.setSLast([7, 12])
         DStarLite.genH(hueristic)
+
+    print(gridWorld.map[DStarLite.sLast[0]][DStarLite.sLast[1]])
+    print(gridWorld.map[DStarLite.iGoal][DStarLite.jGoal])
 
     for changedCell in changes:  #The actual cells whoose changes were detected by the sensor sweep
         for x in changedCell.getNeighbours(): #The neighbours of the changed cells, the effected cells
             targV = gridWorld.map[x[1][0]][x[1][1]]
             if targV.getType() != 1:
                 DStarLite.updateVertex(targV, changedCell) #Update the difference of the changed cell and the effected cells
-        DStarLite.computeShortestPathStep(10)
+        DStarLite.computeShortestPathStep(50)
 
-    print(gridWorld)
+    #print(gridWorld)

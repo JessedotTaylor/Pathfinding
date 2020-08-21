@@ -25,8 +25,8 @@ CORNER_COST = 1
 sequence = [[-1,-1,CORNER_COST],[-1,0,1],[-1,1,CORNER_COST],[0,-1,1],[0,1,1],[1,-1,CORNER_COST],[1,0,1],[1,1,CORNER_COST]]
 
 #inputMapName = 'grids/grid_lpa_journal.map'
-inputMapName = 'grids/grid_Dstar_journal.map'
-#inputMapName = 'grids/grid_Dstar_slides.map'
+#inputMapName = 'grids/grid_Dstar_journal.map'
+inputMapName = 'grids/grid_lpa_slides.map'
 gridWorld = classes.Grid(inputMapName, sequence)
 MASTER_GRID = classes.Grid(inputMapName, sequence)
 #print(gridWorld)
@@ -50,7 +50,7 @@ TEXT_OFFSET = 5
 pygame.init()
 
 # Set the width and height of the screen
-size = [1360, 768] #1360 768
+size = [1900, 1000] #1360 768 Screen 1900 1000
 screen=pygame.display.set_mode(size)
 
 #Width / cell = total width - margins / # cells
@@ -311,8 +311,7 @@ while not done:
                     drawLocal.remove([i, j])
                 else:
                     drawLocal.append([i,j])
-                    gridWorld.map[i][j].printNeighbours()
-                
+                    gridWorld.map[i][j].printNeighbours()            
                         
             if event.key == pygame.K_F10:
                 start = time.time()
@@ -334,7 +333,42 @@ while not done:
                     currRobotPos -= 1
                 getAndRenderResults()
 
+            if event.key == pygame.K_F11:
+                start = time.time()
+                DStarLite.computeShortestPath()
+                end = time.time()
+                #DStarLite.setSLast(gridWorld.start)
+                calcFirstSearch = end - start
+                getAndRenderResults()
 
+            if event.key == pygame.K_F12:
+                pos = pygame.mouse.get_pos()
+                i, j = getGridCoord(pos)
+                changes = gridWorld.sensorSweep(i, j)
+                if changes != []:
+                    print("Changes Detected")
+                    DStarLite.km = DStarLite.km + DStarLite.genH(HEURISTIC, [i, j], DStarLite.sLast)
+                    DStarLite.setSLast([i, j])
+                    DStarLite.genH(HEURISTIC)
+
+                for changedCell in changes:  #The actual cells whoose changes were detected by the sensor sweep
+                    for x in changedCell.getNeighbours(): #The neighbours of the changed cells, the effected cells
+                        targV = gridWorld.map[x[1][0]][x[1][1]]
+                        if targV.getType() != 1:
+                            DStarLite.updateVertex(targV, changedCell) #Update the difference of the changed cell and the effected cells
+                    #Force start position update
+                    DStarLite.setSLast([i,j])
+                    start = time.time()
+                    DStarLite.computeShortestPath()
+                    end = time.time()
+                    calcSecondSearch = end - start
+                    path = []
+                    lenP = 0
+                    currotPos = 0   
+
+            if event.key == pygame.K_F9:
+                DStarLite.computeShortestPathStep(1)
+                gridWorld = DStarLite.writeGrid()
     clock.tick(20) #Limit to ?60? frames / second
 
     screen.fill(black)
@@ -366,7 +400,7 @@ while not done:
             if (iRob, jRob) != (prevIRob, prevJRob):
                 changes = gridWorld.sensorSweep(iRob, jRob)
                 if changes != []:
-                    print("Changes Detected")
+                    #print("Changes Detected")
                     DStarLite.km = DStarLite.km + DStarLite.genH(HEURISTIC, [iRob, jRob], DStarLite.sLast)
                     DStarLite.setSLast([iRob, jRob])
                     DStarLite.genH(HEURISTIC)
@@ -482,11 +516,11 @@ while not done:
         goal = gridWorld.goal
 
         if gridWorld.map[start[0]][start[1]]._h > 0: #Determine algorithim used based on start point hueristic value. 0 if LPA, != 0 if DStarLite
-            print("Detected LPAStar")
+            #print("Detected LPAStar")
             minNeighbour = gridWorld.map[goal[0]][goal[1]]
             targObj = gridWorld.map[DStarLite.sLast[0]][DStarLite.sLast[1]]
         else:
-            print("Detected DStarLite")
+            #print("Detected DStarLite")
             if gridWorld.map[start[0]][start[1]].getG() == 99:
                 print("No path exists!")
                 exit()
@@ -509,7 +543,6 @@ while not done:
 
                 if targV.getType() != 1:
                     if (targV.leG(minV) and cost <= currCost):
-
                         #print("Smaller Found")
                         minV = targV
                         currCost = cost
