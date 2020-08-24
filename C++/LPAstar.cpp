@@ -24,6 +24,8 @@ void LpaStar::initialise(int startX, int startY, int goalX, int goalY){
 		    maze[i][j].g = INF;
 			maze[i][j].rhs = INF;
 			maze[i][j].h = calc_H(i, j);
+			maze[i][j].row = i;
+			maze[i][j].col = j;
 		}
 	}
 	start = new LpaStarCell;
@@ -133,6 +135,55 @@ void LpaStar::updateAllKeyValues(){
 	calcKey(goal);
 }
 
+void LpaStar::computeShortestPath(void) {
+	this->calcKey(start);
+	while((this->topKey() < this->start->key) || (goal->rhs != goal->g)) {
+		LpaStarCell u = *(this->pop());
+		LpaStarCell* neighbour;
+		
+		if (u.g > u.rhs) {
+			u.g = u.rhs;
+			
+			for(int m=0; m < DIRECTIONS; m++){
+				neighbour = u.move[m];
+				if(neighbour != NULL && neighbour->type != '1'){
+					this->updateVertex(neighbour);
+				}  	
+			}
+		} else {
+			u.g = INF;
+			for(int m=0; m < DIRECTIONS; m++){
+				neighbour = u.move[m];
+				if(neighbour != NULL && neighbour->type != '1'){
+					this->updateVertex(neighbour);
+				}  	
+			}
+			LpaStarCell * uP = &u;
+			this->updateVertex(uP);
+
+		}
+	}
+}
+
+void LpaStar::updateVertex(LpaStarCell * u) {
+	//Status check here
+	LpaStarCell* neighbour;
+	if (this->ne(u, this->start)) {
+		int currMin = INF;
+		for(int m=0; m < DIRECTIONS; m++){
+			neighbour = u->move[m];
+			int cost = neighbour->g + u->linkCost[m];
+			if (cost < currMin) {currMin = cost;}
+		} 
+		u->rhs = currMin; 	
+	}
+
+	if (this->inQueue(u)) {this->remove(u);}
+
+	if (u->g != u-> rhs) {this->insert(u, u->key);}
+}
+
+
 double* LpaStar::smallestKey(double s[2], double sPrime[2]) {
 	if (s[0] < sPrime[0]) {return s;}
 	else if (s[0] == sPrime[0]) {
@@ -172,7 +223,7 @@ LpaStarCell * LpaStar::pop(void) {
 	return s;
 }
 
-void LpaStar::remove(LpaStarCell s) {
+void LpaStar::remove(LpaStarCell * s) {
 	if (lenU > 0) {
 		int i = 0;
 		while (ne(U[i], s)) {
@@ -182,6 +233,14 @@ void LpaStar::remove(LpaStarCell s) {
 		lenU--;
 	}
 }
+
+bool LpaStar::inQueue(LpaStarCell * u) {
+	for (int i = 0; i < this->lenU; i++) {
+		if ((u->row == U[i]->row) && (u->col == U[i]->col)) {return true;}
+	}
+	return false;
+}
+
 
 bool LpaStar::et(LpaStarCell s, LpaStarCell * other) {
 	if (s.key[0] == other->key[0]){
@@ -196,6 +255,14 @@ bool LpaStar::lt(LpaStarCell * s, double other[2]) {
 	if (s->key[0] < other[0]) {return true;}
         else if (s->key[0] == other[0]) {
             if (s->key[1] < other[1]) {return true;} 
+            else {return false;}
+    } else {return false;}
+}
+
+bool LpaStar::lt(double s[2], double other[2]) {
+	if (s[0] < other[0]) {return true;}
+        else if (s[0] == other[0]) {
+            if (s[1] < other[1]) {return true;} 
             else {return false;}
     } else {return false;}
 }

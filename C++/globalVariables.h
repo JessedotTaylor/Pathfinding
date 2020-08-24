@@ -186,11 +186,12 @@ struct LpaStarCell
 {
     LpaStarCell* move[DIRECTIONS];
     LpaStarCell* predecessor[DIRECTIONS];
-	 double linkCost[DIRECTIONS];
+	double linkCost[DIRECTIONS];
     LpaStarCell* parent;
     LpaStarCell* trace;
     short obstacle;
     int x, y;
+	int row, col;
 
 	double g;
     double rhs;

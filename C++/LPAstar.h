@@ -22,11 +22,13 @@ class LpaStar{
         void updateHValues();
         void updateAllKeyValues();
 
+        void computeShortestPath(void);
+        void updateVertex(LpaStarCell * u);
+
+
         //void copyMazeToDisplayMap(GridWorld gWorld);
         friend void copyMazeToDisplayMap(GridWorld &gWorld, LpaStar* lpa);
         friend void copyDisplayMapToMaze(GridWorld &gWorld, LpaStar* lpa);
-
-
 
 
         //private:
@@ -49,10 +51,12 @@ class LpaStar{
         void insert(LpaStarCell * s , double key[2]);
         double * topKey(void);
         LpaStarCell * pop(void);
-        void remove(LpaStarCell s);
+        void remove(LpaStarCell * s);
+        bool inQueue(LpaStarCell * u);
 
         bool et(LpaStarCell s, LpaStarCell * other); //==
         bool lt(LpaStarCell * s, double other[2]); // <
+        bool lt(double s[2], double other[2]); // <
         bool ne(LpaStarCell * s, LpaStarCell * other); // !=
         bool ne(LpaStarCell * s, LpaStarCell other); // !=
 

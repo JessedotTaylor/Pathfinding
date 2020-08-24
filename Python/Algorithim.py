@@ -51,7 +51,7 @@ class LPAStar:
                 for x in u.getNeighbours():
                     if x[2] != 1:
                         self.updateVertex(self.grid.map[x[1][0]][x[1][1]], u)
-                        self.updateVertex(u, u)
+                self.updateVertex(u, u)
         #print((self.U.topKey(), self._calcKeys(self.iGoal, self.jGoal)), (self.grid.map[self.iGoal][self.jGoal].rhs, self.grid.map[self.iGoal][self.jGoal].g))
     
     def computeShortestPathStep(self, steps):
@@ -98,7 +98,30 @@ class LPAStar:
 
 
 
-    def updateVertex(self, u, sPrime):
+    # def updateVertex(self, u, sPrime):
+    #     if u._status == 0:
+    #         u._status = 1
+    #     if u != self.grid.map[self.iStart][self.jStart]:
+    #         currMin = 999
+    #         for x in u.getNeighbours():
+    #             cost = self.grid.map[x[1][0]][x[1][1]].getG() + x[0][2]
+                
+    #             #print(sPrime.g, x[0][2])
+    #             #cost = sPrime.g + x[0][2]
+    #             if cost < currMin:
+    #                 currMin = cost
+    #             #print(x, sPrime.g, x[0][2])
+        
+    #         u.setRHS(currMin)
+    #         #print(u)
+
+    #     if u in self.U:
+    #         self.U.remove(u)
+
+    #     if u.getG() != u.getRHS():
+    #         self.U.insert(u, self._calcKeys(u))
+
+    def updateVertex(self, u):
         if u._status == 0:
             u._status = 1
         if u != self.grid.map[self.iStart][self.jStart]:
