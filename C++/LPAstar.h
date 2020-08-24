@@ -15,7 +15,7 @@ public:
 	 double minValue(double g_, double rhs_);
     //double maxValue(double v1, double v2);
     int maxValue(int v1, int v2);
-	 void calcKey(int x, int y);
+	void calcKey(int x, int y);
     void calcKey(LpaStarCell *cell);
     //void calc_H(int x, int y);
     double calc_H(int x, int y);
@@ -28,14 +28,22 @@ public:
 
 private:
 	
-    vector<vector<LpaStarCell> > maze;   
+    vector<vector<LpaStarCell>> maze;   
     LpaStarCell l;
     vector<LpaStarCell* > U; //Priority Queue
+    double lenU;
+    double maxU;
     LpaStarCell* start;
     LpaStarCell* goal;
 
     int rows;
     int cols;
+
+    double* LpaStar::smallestKey(double s[2], double sPrime[2]);
+    void LpaStar::plusLen(void);
+    void LpaStar::plusLen(int val);
+    
+    void LpaStar::insert(LpaStarCell, double key[2]);
 
 };
 

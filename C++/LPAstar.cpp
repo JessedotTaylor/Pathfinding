@@ -23,6 +23,7 @@ void LpaStar::initialise(int startX, int startY, int goalX, int goalY){
 	   for(int j=0; j < cols; j++){
 		   maze[i][j].g = INF;
 			maze[i][j].rhs = INF;
+			maze[i][j].h = calc_H(i, j);
 		}
 	}
 	start = new LpaStarCell;
@@ -45,6 +46,12 @@ void LpaStar::initialise(int startX, int startY, int goalX, int goalY){
 	
 	maze[goal->y][goal->x].g = goal->g;
 	maze[goal->y][goal->x].rhs = goal->rhs;
+
+	//maze[start->y][start->x].key = ([maze[start->y][start->x].h, 0]);
+	//maze[start->y][start->x].calcKey()
+	calcKey(start);
+
+
 	//---------------------
 	
 	//for debugging only
@@ -123,6 +130,32 @@ void LpaStar::updateAllKeyValues(){
 	
 	calcKey(start);
 	calcKey(goal);
+}
+
+double* LpaStar::smallestKey(double s[2], double sPrime[2]) {
+	if (s[0] < sPrime[0]) {return s;}
+	else if (s[0] == sPrime[0]) {
+		if (s[1] < sPrime[1]) {return s;}
+	} else {return sPrime;}
+}
+
+void LpaStar::plusLen(void) {
+	lenU++;
+	if (this->lenU > this->maxU) {maxU = lenU;}
+}
+
+void LpaStar::plusLen(int val) {
+	lenU = lenU + val;
+	if (this->lenU > this->maxU) {maxU = lenU;}
+}
+
+void LpaStar::insert(LpaStarCell, double key[2]) {
+	if (lenU > 0) {
+		int i = 0;
+		while (i < lenU) and (U[u] < k) {
+			
+		}
+	}
 }
 
 
