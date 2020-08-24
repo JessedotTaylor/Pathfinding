@@ -21,7 +21,7 @@
 void LpaStar::initialise(int startX, int startY, int goalX, int goalY){
 	for(int i=0; i < rows; i++){
 	   for(int j=0; j < cols; j++){
-		   maze[i][j].g = INF;
+		    maze[i][j].g = INF;
 			maze[i][j].rhs = INF;
 			maze[i][j].h = calc_H(i, j);
 		}
@@ -50,6 +50,7 @@ void LpaStar::initialise(int startX, int startY, int goalX, int goalY){
 	//maze[start->y][start->x].key = ([maze[start->y][start->x].h, 0]);
 	//maze[start->y][start->x].calcKey()
 	calcKey(start);
+	this->insert(start, start->key);
 
 
 	//---------------------
@@ -149,15 +150,70 @@ void LpaStar::plusLen(int val) {
 	if (this->lenU > this->maxU) {maxU = lenU;}
 }
 
-void LpaStar::insert(LpaStarCell, double key[2]) {
+void LpaStar::insert(LpaStarCell * s, double key[2]) {
+	int i = 0;
+	while ((i < lenU) && (lt(U[i], key))) {
+		i++;
+	}
+
+	U.insert(U.begin() + i, s);
+	this->plusLen();
+}
+
+double * LpaStar::topKey(void) {
+	if (this->lenU > 0) {return this->U[0]->key;}
+}
+
+LpaStarCell * LpaStar::pop(void) {
+	//s = new LpaStarCell;
+	LpaStarCell * s = U[0];
+	U.erase(U.begin());
+	lenU--;
+	return s;
+}
+
+void LpaStar::remove(LpaStarCell s) {
 	if (lenU > 0) {
 		int i = 0;
-		while (i < lenU) and (U[u] < k) {
-			
+		while (ne(U[i], s)) {
+			i++;
 		}
+		U.erase(U.begin() + i);
+		lenU--;
 	}
 }
 
+bool LpaStar::et(LpaStarCell s, LpaStarCell * other) {
+	if (s.key[0] == other->key[0]){
+            if (s.key[1] == other->key[1]){
+                return true;
+            }
+        }
+    return false;
+}
 
+bool LpaStar::lt(LpaStarCell * s, double other[2]) {
+	if (s->key[0] < other[0]) {return true;}
+        else if (s->key[0] == other[0]) {
+            if (s->key[1] < other[1]) {return true;} 
+            else {return false;}
+    } else {return false;}
+}
 
+bool LpaStar::ne(LpaStarCell * s, LpaStarCell * other) {
+	if (s->key[0] == other->key[0]){
+            if (s->key[1] == other->key[1]){
+                return false;
+            }
+        }
+    return true;
+}
 
+bool LpaStar::ne(LpaStarCell * s, LpaStarCell other) {
+	if (s->key[0] == other.key[0]){
+            if (s->key[1] == other.key[1]){
+                return false;
+            }
+        }
+    return true;
+}

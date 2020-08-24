@@ -180,7 +180,7 @@ extern int cellHeight;
 //8-connected gridworld
 #define DIRECTIONS 8 //clockwise sequence of moves (8-connected gridworld)
 
-#define INF  1000000
+#define INF 1000000
 
 struct LpaStarCell
 {
@@ -211,7 +211,9 @@ struct LpaStarCell
 	
     int generated;
     int heapindex;
+
 };
+
 
 extern bool SHOW_MAP_DETAILS;
 

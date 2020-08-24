@@ -55,16 +55,24 @@ void SamplePriorityQueueWithCustomComparator()
     printQueue(pq);
 }
 
+void insert(LpaStarCell s, double key[2]) {
+	int i = 0;
+	while (i < lenU) && (U[u] < k) {
+		i++;
+	}
+	U.insert(s, i);
+	this->plusLen();
+
+}
 
 
 
 int main(int argc, char const *argv[])
 {   
-    vector<LpaStarCell> cellVector = {
-        LpaStarCell v1
+    std::vector<LpaStarCell* > U;
+    LpaStarCell s = new LpaStarCell;
+    U.insert(s, 0);
 
-
-    }
 
 
     SamplePriorityQueue();
