@@ -8,7 +8,7 @@
 
 
  LpaStar::LpaStar(int rows_, int cols_){
-		 rows = rows_;
+		rows = rows_;
 	    cols = cols_;
 	 
 		 //Allocate memory 
@@ -18,41 +18,55 @@
 		 }
 }
 
-void LpaStar::initialise(int startX, int startY, int goalX, int goalY){
+void LpaStar::initialise(int startCol, int startRow, int goalCol, int goalRow){
+	//cout << "Start init\n";
 	for(int i=0; i < rows; i++){
 	   for(int j=0; j < cols; j++){
-		    maze[i][j].g = INF;
+			maze[i][j].g = INF;
 			maze[i][j].rhs = INF;
-			maze[i][j].h = calc_H(i, j);
+			//maze[i][j].h = calc_H(i, j);
 			maze[i][j].row = i;
 			maze[i][j].col = j;
 		}
 	}
+	//cout << "End maze gen\n";
 	start = new LpaStarCell;
 	goal = new LpaStarCell;
 	
 	//START VERTEX
 	start->g = INF;
 	start->rhs = 0.0;
-	start->x = startX;
-	start->y = startY;
+	start->row = startRow;
+	start->col = startCol;
+
 	
 	//GOAL VERTEX
 	goal->g = INF;
 	goal->rhs = INF;
-	goal->x = goalX;
-	goal->y = goalY;
+	goal->row = goalRow;
+	goal->col = goalCol;
 	//---------------------
-	maze[start->y][start->x].g = start->g;
-	maze[start->y][start->x].rhs = start->rhs;
+	//cout << "End vertex setup\n";
+	// maze[start->y][start->x].g = start->g;
+	// maze[start->y][start->x].rhs = start->rhs;
 	
-	maze[goal->y][goal->x].g = goal->g;
-	maze[goal->y][goal->x].rhs = goal->rhs;
+	// maze[goal->y][goal->x].g = goal->g;
+	// maze[goal->y][goal->x].rhs = goal->rhs;
 
 	//maze[start->y][start->x].key = ([maze[start->y][start->x].h, 0]);
 	//maze[start->y][start->x].calcKey()
+	//updateHValues();
+	//cout << "End H val gen\n";
+
 	calcKey(start);
-	this->insert(start, start->key);
+	insert(start, start->key);
+	//cout << "Queue: " << U << '\n';
+	// cout << "Start Queue len: " << lenU << '\n';
+	// cout << "Starting Queue: ";
+
+	// for (int x = 0; x < lenU; x++) {
+	// 	cout << U[x]->row << " " << U[x]->col << '\n';
+	// }
 
 
 	//---------------------
@@ -87,11 +101,12 @@ int LpaStar::maxValue(int v1, int v2){
 }
 
 double LpaStar::calc_H(int x, int y){
-	
+	//cout << goal->y << goal->x << '\n';
 	int diffY = abs(goal->y - y);
 	int diffX = abs(goal->x - x);
 	
 	//maze[y][x].h = (double)maxValue(diffY, diffX);
+	//cout << "End calc_H\n";
 	return (double)maxValue(diffY, diffX);
 }
 
@@ -99,8 +114,10 @@ void LpaStar::updateHValues(){
 	for(int i=0; i < rows; i++){
 	   for(int j=0; j < cols; j++){
 		   maze[i][j].h = calc_H(j, i);
+		
 		}
 	}
+	//cout <<"End H loop\n"; 
 	
 	start->h = calc_H(start->x, start->y);
 	goal->h = calc_H(goal->x, goal->y);
@@ -136,30 +153,46 @@ void LpaStar::updateAllKeyValues(){
 }
 
 void LpaStar::computeShortestPath(void) {
-	this->calcKey(start);
-	while((this->topKey() < this->start->key) || (goal->rhs != goal->g)) {
-		LpaStarCell u = *(this->pop());
+	calcKey(start);
+	cout << "topKey: " << *(topKey()) << " Goal Key: " << *(goal->key) << " Result: " << (topKey() < goal->key) << '\n';
+	cout << "Goal RHS: " << goal->rhs << " Goal G: " << goal->g << " Result: " << (goal->rhs != goal->g) << '\n';;
+
+
+	while((topKey() < goal->key) || (goal->rhs != goal->g)) {
+		//cout << "Made it inside while\n";
+		LpaStarCell u = *(pop());
 		LpaStarCell* neighbour;
+		cout << (char)((u.row-1) + 'A') << " " << (u.col-1) << '\n';
 		
 		if (u.g > u.rhs) {
 			u.g = u.rhs;
 			
 			for(int m=0; m < DIRECTIONS; m++){
 				neighbour = u.move[m];
-				if(neighbour != NULL && neighbour->type != '1'){
-					this->updateVertex(neighbour);
-				}  	
+
+				// cout << "Neighbour: " << m <<'\n';
+				
+				// cout << neighbour->type + '0' << '\n';
+				// if(neighbour != NULL && neighbour->type != 1){
+				// 	updateVertex(neighbour);
+				// }  	
+				cout << "Neighbour: " << m << " Position: (" << (char)(((neighbour->row)-1) + 'A') << " " << ((neighbour->col)-1) << ") Cost: " << u.linkCost[m] << '\n';
+
+				if(u.linkCost[m] != INF){
+					neighbour = u.move[m];
+					updateVertex(neighbour);
+				}
 			}
 		} else {
 			u.g = INF;
 			for(int m=0; m < DIRECTIONS; m++){
 				neighbour = u.move[m];
-				if(neighbour != NULL && neighbour->type != '1'){
-					this->updateVertex(neighbour);
+				if(neighbour != NULL && neighbour->type != 1){
+					updateVertex(neighbour);
 				}  	
 			}
 			LpaStarCell * uP = &u;
-			this->updateVertex(uP);
+			updateVertex(uP);
 
 		}
 	}
@@ -167,20 +200,26 @@ void LpaStar::computeShortestPath(void) {
 
 void LpaStar::updateVertex(LpaStarCell * u) {
 	//Status check here
+	cout << "Update Vertex: (" << (char)(((u->row)-1) + 'A') << " " << ((u->col)-1) << ")\n";
 	LpaStarCell* neighbour;
-	if (this->ne(u, this->start)) {
+	if (ne(u, this->start)) {
 		int currMin = INF;
+		//cout << DIR
 		for(int m=0; m < DIRECTIONS; m++){
+			//cout << u->move[m];
+
 			neighbour = u->move[m];
+			cout << "Neighbour: " << m << " Position: (" << (char)(((u->row)-1) + 'A') << " " << ((u->col)-1) << ")\n";
 			int cost = neighbour->g + u->linkCost[m];
 			if (cost < currMin) {currMin = cost;}
 		} 
+		//cout << currMin << '\n';
 		u->rhs = currMin; 	
 	}
 
-	if (this->inQueue(u)) {this->remove(u);}
+	if (inQueue(u)) {remove(u);}
 
-	if (u->g != u-> rhs) {this->insert(u, u->key);}
+	if (u->g != u-> rhs) {insert(u, u->key);}
 }
 
 
@@ -188,7 +227,8 @@ double* LpaStar::smallestKey(double s[2], double sPrime[2]) {
 	if (s[0] < sPrime[0]) {return s;}
 	else if (s[0] == sPrime[0]) {
 		if (s[1] < sPrime[1]) {return s;}
-	} else {return sPrime;}
+	} 
+	return sPrime;
 }
 
 void LpaStar::plusLen(void) {
@@ -202,6 +242,7 @@ void LpaStar::plusLen(int val) {
 }
 
 void LpaStar::insert(LpaStarCell * s, double key[2]) {
+	//cout << "Insert Called\n";
 	int i = 0;
 	while ((i < lenU) && (lt(U[i], key))) {
 		i++;
@@ -268,6 +309,7 @@ bool LpaStar::lt(double s[2], double other[2]) {
 }
 
 bool LpaStar::ne(LpaStarCell * s, LpaStarCell * other) {
+	//cout << "ne Called\n";
 	if (s->key[0] == other->key[0]){
             if (s->key[1] == other->key[1]){
                 return false;

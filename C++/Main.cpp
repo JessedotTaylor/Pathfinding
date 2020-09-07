@@ -121,6 +121,12 @@ void copyDisplayMapToMaze(GridWorld &gWorld, LpaStar* lpa){
 			lpa->maze[i][j].x = gWorld.map[i][j].col;
 			lpa->maze[i][j].y = gWorld.map[i][j].row;
 			
+			for (int m=0; m < DIRECTIONS; m++) {
+				lpa->maze[i][j].move[m] = gWorld.map[i][j].move[m];
+				lpa->maze[i][j].linkCost[m] = gWorld.map[i][j].linkCost[m];
+			}
+			
+			
 		   //lpa->maze[i][j].g = gWorld.map[i][j].g;
 			//lpa->maze[i][j].rhs = gWorld.map[i][j].rhs;
 		}
@@ -256,6 +262,7 @@ int getKey(){
  }
  
 void runSimulation(char *fileName){
+	//std::cout <<"Run Sim called" <<std::endl;
 	WorldBoundaryType worldBoundary; //duplicated in GridWorld
    DevBoundaryType deviceBoundary; //duplicated in GridWorld
 	bool ANIMATE_MOUSE_FLAG=false;
@@ -285,7 +292,10 @@ void runSimulation(char *fileName){
 	
 	//----------------------------------------------------------------
 	//LPA*
+
 	lpa_star = new LpaStar(grid_world.getGridWorldRows(), grid_world.getGridWorldCols());
+
+	
 	vertex start = grid_world.getStartVertex();
 	vertex goal = grid_world.getGoalVertex();
 	
@@ -293,6 +303,9 @@ void runSimulation(char *fileName){
 	cout << "(goal.col = " << goal.col << ", goal.row = " << goal.row << ")" << endl;
 	
 	lpa_star->initialise(start.col, start.row, goal.col, goal.row);
+	//cout << "End init" << endl;
+	
+	
 	
 	//lpa_star->copyMazeToDisplayMap(grid_world);
 	//copyMazeToDisplayMap(grid_world, lpa_star);
@@ -307,6 +320,7 @@ void runSimulation(char *fileName){
 	//setvisualpage(page);
 	
 	// keep running the program until the ESC key is pressed   
+	//cout << "Made it to while" << endl;
 	while((GetAsyncKeyState(VK_ESCAPE)) == 0 ) {
 			 setactivepage(page);
 			 cleardevice();
@@ -457,9 +471,12 @@ void runSimulation(char *fileName){
 				
 				case 110:					
 					   lpa_star->updateHValues();
+					   cout << "starting compute()\n";
+					   lpa_star->computeShortestPath();
 					   copyMazeToDisplayMap(grid_world, lpa_star);
 				      cout << "copied algorithm's maze to display map" << endl;
 				      action = -1;
+					  Sleep(200);
 				      break;
 				
 				case 9: //display g-values only
