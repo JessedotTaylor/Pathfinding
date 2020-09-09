@@ -41,9 +41,9 @@ class DStarLite {
 
         int km;
 
-        vector* sLast;
-        vector* start;
-        vector* goal;
+        vector *sLast;
+        vector *start;
+        vector *goal;
 };
 
 #endif
