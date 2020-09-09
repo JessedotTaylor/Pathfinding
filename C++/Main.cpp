@@ -41,7 +41,7 @@
 #include "globalVariables.h"
 #include "transform.h"
 #include "graphics.h"
-#include "AstarSearch.h"
+#include "DStarLite.h"
 #include "LPAstar.h"
 #include "gridworld.h"
 
@@ -65,7 +65,7 @@ int maxQLength;
 int qLengthAfterSearch;
 
 ///////////////////////////////////////////////////////////////////////////////
-LpaStar* lpa_star;
+DStarLite* D_Star_Lite;
 GridWorld grid_world;
 
 bool SHOW_MAP_DETAILS;
@@ -74,76 +74,70 @@ bool SHOW_MAP_DETAILS;
 
 //--------------------------------------------------------------
 //copy maze (from LPA*) to map (of GridWorld)
-void copyMazeToDisplayMap(GridWorld &gWorld, LpaStar* lpa){
+void copyMazeToDisplayMap(GridWorld &gWorld, DStarLite* DStar){
 	for(int i=0; i < gWorld.getGridWorldRows(); i++){
 	   for(int j=0; j < gWorld.getGridWorldCols(); j++){
-			gWorld.map[i][j].type = lpa->maze[i][j].type;
-		   gWorld.map[i][j].h = lpa->maze[i][j].h;
-			gWorld.map[i][j].g = lpa->maze[i][j].g;
-			gWorld.map[i][j].rhs = lpa->maze[i][j].rhs;
-			gWorld.map[i][j].row = lpa->maze[i][j].y;
-			gWorld.map[i][j].col = lpa->maze[i][j].x;
+			gWorld.map[i][j].type = DStar->maze[i][j].type;
+		   gWorld.map[i][j].h = DStar->maze[i][j].h;
+			gWorld.map[i][j].g = DStar->maze[i][j].g;
+			gWorld.map[i][j].rhs = DStar->maze[i][j].rhs;
+			gWorld.map[i][j].row = DStar->maze[i][j].y;
+			gWorld.map[i][j].col = DStar->maze[i][j].x;
 			
 			for(int k=0; k < 2; k++){
-			  gWorld.map[i][j].key[k] = lpa->maze[i][j].key[k];			  
+			  gWorld.map[i][j].key[k] = DStar->maze[i][j].key[k];			  
 			}
 			
 			
 		}
 	}
-	gWorld.map[lpa->start->y][lpa->start->x].h = lpa->start->h;
-	gWorld.map[lpa->start->y][lpa->start->x].g = lpa->start->g;
-	gWorld.map[lpa->start->y][lpa->start->x].rhs = lpa->start->rhs;
-	gWorld.map[lpa->start->y][lpa->start->x].row = lpa->start->y;
-	gWorld.map[lpa->start->y][lpa->start->x].col = lpa->start->x;
+	gWorld.map[DStar->start->y][DStar->start->x].h = DStar->start->h;
+	gWorld.map[DStar->start->y][DStar->start->x].g = DStar->start->g;
+	gWorld.map[DStar->start->y][DStar->start->x].rhs = DStar->start->rhs;
+	gWorld.map[DStar->start->y][DStar->start->x].row = DStar->start->y;
+	gWorld.map[DStar->start->y][DStar->start->x].col = DStar->start->x;
 	for(int k=0; k < 2; k++){
-			  gWorld.map[lpa->start->y][lpa->start->x].key[k] = lpa->start->key[k];			  
+			  gWorld.map[DStar->start->y][DStar->start->x].key[k] = DStar->start->key[k];			  
 	}
 	
 	
-	gWorld.map[lpa->goal->y][lpa->goal->x].h = lpa->goal->h;
-	gWorld.map[lpa->goal->y][lpa->goal->x].g = lpa->goal->g;
-	gWorld.map[lpa->goal->y][lpa->goal->x].rhs = lpa->goal->rhs;
-	gWorld.map[lpa->goal->y][lpa->goal->x].row = lpa->goal->y;
-	gWorld.map[lpa->goal->y][lpa->goal->x].col = lpa->goal->x;
+	gWorld.map[DStar->goal->y][DStar->goal->x].h = DStar->goal->h;
+	gWorld.map[DStar->goal->y][DStar->goal->x].g = DStar->goal->g;
+	gWorld.map[DStar->goal->y][DStar->goal->x].rhs = DStar->goal->rhs;
+	gWorld.map[DStar->goal->y][DStar->goal->x].row = DStar->goal->y;
+	gWorld.map[DStar->goal->y][DStar->goal->x].col = DStar->goal->x;
 	for(int k=0; k < 2; k++){
-			  gWorld.map[lpa->goal->y][lpa->goal->x].key[k] = lpa->goal->key[k];			  
+			  gWorld.map[DStar->goal->y][DStar->goal->x].key[k] = DStar->goal->key[k];			  
 	}
 	
 }
 
 //--------------------------------------------------------------
 //copy map (of GridWorld)to maze (of LPA*)
-void copyDisplayMapToMaze(GridWorld &gWorld, LpaStar* lpa){
+void copyDisplayMapToMaze(GridWorld &gWorld, DStarLite* DStar){
 	for(int i=0; i < gWorld.getGridWorldRows(); i++){
 	   for(int j=0; j < gWorld.getGridWorldCols(); j++){
-			lpa->maze[i][j].type = gWorld.map[i][j].type;
-			lpa->maze[i][j].x = gWorld.map[i][j].col;
-			lpa->maze[i][j].y = gWorld.map[i][j].row;
+			DStar->maze[i][j].type = gWorld.map[i][j].type;
+			DStar->maze[i][j].x = gWorld.map[i][j].col;
+			DStar->maze[i][j].y = gWorld.map[i][j].row;
 			
-			for (int m=0; m < DIRECTIONS; m++) {
-				lpa->maze[i][j].move[m] = gWorld.map[i][j].move[m];
-				lpa->maze[i][j].linkCost[m] = gWorld.map[i][j].linkCost[m];
-			}
-			
-			
-		   //lpa->maze[i][j].g = gWorld.map[i][j].g;
-			//lpa->maze[i][j].rhs = gWorld.map[i][j].rhs;
+		   //DStar->maze[i][j].g = gWorld.map[i][j].g;
+			//DStar->maze[i][j].rhs = gWorld.map[i][j].rhs;
 		}
 	}
 	
 	vertex startV = gWorld.getStartVertex();
 	vertex goalV = gWorld.getGoalVertex();
 	
-	//lpa->start->g = gWorld.map[startV.row][startV.col].g ;
-	//lpa->start->rhs = gWorld.map[startV.row][startV.col].rhs ;
-	lpa->start->x = gWorld.map[startV.row][startV.col].col;
-	lpa->start->y = gWorld.map[startV.row][startV.col].row;
+	//DStar->start->g = gWorld.map[startV.row][startV.col].g ;
+	//DStar->start->rhs = gWorld.map[startV.row][startV.col].rhs ;
+	DStar->start->x = gWorld.map[startV.row][startV.col].col;
+	DStar->start->y = gWorld.map[startV.row][startV.col].row;
 	
-	//lpa->goal->g = gWorld.map[goalV.row][goalV.col].g;
-	//lpa->goal->rhs = gWorld.map[goalV.row][goalV.col].rhs;
-	lpa->goal->x = gWorld.map[goalV.row][goalV.col].col;
-	lpa->goal->y = gWorld.map[goalV.row][goalV.col].row;
+	//DStar->goal->g = gWorld.map[goalV.row][goalV.col].g;
+	//DStar->goal->rhs = gWorld.map[goalV.row][goalV.col].rhs;
+	DStar->goal->x = gWorld.map[goalV.row][goalV.col].col;
+	DStar->goal->y = gWorld.map[goalV.row][goalV.col].row;
 	
 }
 
@@ -262,9 +256,8 @@ int getKey(){
  }
  
 void runSimulation(char *fileName){
-	//std::cout <<"Run Sim called" <<std::endl;
 	WorldBoundaryType worldBoundary; //duplicated in GridWorld
-   DevBoundaryType deviceBoundary; //duplicated in GridWorld
+    DevBoundaryType deviceBoundary; //duplicated in GridWorld
 	bool ANIMATE_MOUSE_FLAG=false;
 	bool validCellSelected=false;
 	static BOOL page=false;
@@ -278,7 +271,7 @@ void runSimulation(char *fileName){
 	CellPosition p;
 	int rowSelected, colSelected;
 	//-----------------------
-   rowSelected=-1;
+    rowSelected=-1;
 	colSelected=-1;
 	
 	int mouseRadius=1;
@@ -286,30 +279,24 @@ void runSimulation(char *fileName){
 	srand(time(NULL));  // Seed the random number generator
 			
 	//Initialise the world boundaries
-   grid_world.initSystemOfCoordinates();
+    grid_world.initSystemOfCoordinates();
 	grid_world.loadMapAndDisplay(fileName);
 	grid_world.initialiseMapConnections();
 	
 	//----------------------------------------------------------------
-	//LPA*
-
-	lpa_star = new LpaStar(grid_world.getGridWorldRows(), grid_world.getGridWorldCols());
-
-	
+	//D*Lite
+	D_Star_Lite = new DStarLite(grid_world.getGridWorldRows(), grid_world.getGridWorldCols());
 	vertex start = grid_world.getStartVertex();
 	vertex goal = grid_world.getGoalVertex();
 	
 	cout << "(start.col = " << start.col << ", start.row = " << start.row << ")" << endl;
 	cout << "(goal.col = " << goal.col << ", goal.row = " << goal.row << ")" << endl;
 	
-	lpa_star->initialise(start.col, start.row, goal.col, goal.row);
-	//cout << "End init" << endl;
+	D_Star_Lite->initialise(start.col, start.row, goal.col, goal.row);
 	
-	
-	
-	//lpa_star->copyMazeToDisplayMap(grid_world);
-	//copyMazeToDisplayMap(grid_world, lpa_star);
-	copyDisplayMapToMaze(grid_world, lpa_star);
+	//D_Star_Lite->copyMazeToDisplayMap(grid_world);
+	//copyMazeToDisplayMap(grid_world, D_Star_Lite);
+	copyDisplayMapToMaze(grid_world, D_Star_Lite);
 	//----------------------------------------------------------------
 		
 	worldBoundary = grid_world.getWorldBoundary();
@@ -320,7 +307,6 @@ void runSimulation(char *fileName){
 	//setvisualpage(page);
 	
 	// keep running the program until the ESC key is pressed   
-	//cout << "Made it to while" << endl;
 	while((GetAsyncKeyState(VK_ESCAPE)) == 0 ) {
 			 setactivepage(page);
 			 cleardevice();
@@ -464,19 +450,16 @@ void runSimulation(char *fileName){
 					}
 							
             case 109:					
-					   copyDisplayMapToMaze(grid_world, lpa_star);
+					   copyDisplayMapToMaze(grid_world, D_Star_Lite);
 				      cout << "copied display map to algorithm's maze" << endl;
 				      action = -1;
 				      break;
 				
 				case 110:					
-					   lpa_star->updateHValues();
-					   cout << "starting compute()\n";
-					   lpa_star->computeShortestPath();
-					   copyMazeToDisplayMap(grid_world, lpa_star);
+					   D_Star_Lite->updateHValues();
+					   copyMazeToDisplayMap(grid_world, D_Star_Lite);
 				      cout << "copied algorithm's maze to display map" << endl;
 				      action = -1;
-					  Sleep(200);
 				      break;
 				
 				case 9: //display g-values only
@@ -488,8 +471,8 @@ void runSimulation(char *fileName){
 				 		action = -1;
 				      break;
 				case 11: //display key-values only
-					   lpa_star->updateAllKeyValues();
-				      copyMazeToDisplayMap(grid_world, lpa_star);
+					   D_Star_Lite->updateAllKeyValues();
+				      copyMazeToDisplayMap(grid_world, D_Star_Lite);
 					   grid_world.displayMapWithSelectedDetails(false, false, false, true);  //(bool display_g, bool display_rhs, bool display_h, bool display_key) 
 						action = -1;
 				      break;

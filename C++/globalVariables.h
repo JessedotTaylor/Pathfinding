@@ -3,7 +3,6 @@
 
 
 #include <vector>
-#include <queue>
 
 /*******************************************************************************************************************/
 //------------------------------------------
@@ -180,22 +179,21 @@ extern int cellHeight;
 //8-connected gridworld
 #define DIRECTIONS 8 //clockwise sequence of moves (8-connected gridworld)
 
-#define INF 1000000
+#define INF  1000000
 
 struct LpaStarCell
 {
     LpaStarCell* move[DIRECTIONS];
     LpaStarCell* predecessor[DIRECTIONS];
-	double linkCost[DIRECTIONS];
+	 double linkCost[DIRECTIONS];
     LpaStarCell* parent;
     LpaStarCell* trace;
     short obstacle;
     int x, y;
-	int row, col;
 
-	double g;
+	 double g;
     double rhs;
-	double h;
+	 double h;
     double key[2];
 	
 	 //~ int g;
@@ -212,13 +210,12 @@ struct LpaStarCell
 	
     int generated;
     int heapindex;
-
 };
-
 
 extern bool SHOW_MAP_DETAILS;
 
 /********************************************************************************************************************/
+
 
 
 #endif
