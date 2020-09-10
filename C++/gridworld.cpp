@@ -8,70 +8,80 @@ double sum(double a, double b){
 			return (a+b);
 		}
     }
+void GridWorld::displayPath(vertex* startV) {
+	vertex * currentVertex = startV;
+	//cout << "currentVertex: (" << (char)((currentVertex->row-1) + 'A') << " " << (currentVertex->col-1) << ")\n";
+	vertex * neighbour;
+	vertex * min_neighbour;
+	double min_g_plus_c = INF;
+	double linkCost, g;
+	double min_linkCost, min_g;
+
+	for(int m=0; m < DIRECTIONS; m++){
+		linkCost = currentVertex->neighbourData.cost[m];
+		cout << currentVertex->neighbourData.cost[m] << '\n';
+		if (linkCost != INF) {
+			neighbour = &map[currentVertex->neighbourData.realIJ[m].i][currentVertex->neighbourData.realIJ[m].j];
+			cout << "neighbour: (" << (char)((neighbour->row-1) + 'A') << " " << (neighbour->col-1) << ")\n";
+			if(neighbour != NULL && neighbour->type != '1'){
+				
+				g = neighbour->g;
+				cout << (g + linkCost) << " " << min_g_plus_c << '\n';
+				
+				if((g + linkCost) < min_g_plus_c){
+					min_g_plus_c = (g + linkCost);
+					min_g = g;
+					min_linkCost = linkCost; 
+					min_neighbour = neighbour;
+				} 
+			}
+		             
+		}                   
+	}
+	cout << "currentVertex: (" << (char)((currentVertex->row-1) + 'A') << " " << (currentVertex->col-1) << ")\n";
+	cout << "min_neighbour: (" << (char)((min_neighbour->row-1) + 'A') << " " << (min_neighbour->col-1) << ")\n";
+
+	//displayPath(currentVertex, min_neighbour);
+}
+
 //---
 void GridWorld::displayPath(vertex* currentVertex, vertex* min_neighbour){
+	//---
+	vertex* neighbour; 
+	vertex* originVertex;
 
- 
+	double min_g_plus_c = INF;
+	double linkCost, g;
+	double min_linkCost, min_g;
+	//---
 
-     currentVertex = &map[startVertex.row][startVertex.col];
+	originVertex = currentVertex;
 
-     //---
-     vertex* neighbour; 
-     vertex* originVertex;
+	while(1){
+		min_g_plus_c = INF;
 
-     double min_g_plus_c = INF;
-     double linkCost,g;
-     double min_linkCost,min_g;
-     //---
+		for(int m=0; m < DIRECTIONS; m++){
+			neighbour = originVertex->move[m];
+			if(neighbour != NULL && neighbour->type != '1'){
+				linkCost = originVertex->linkCost[m];
+				g = (originVertex->move[m])->g;
+				if(min_g_plus_c > sum(g,linkCost)){
+					min_g_plus_c = sum(g,linkCost);
+					min_g=g;
+					min_linkCost = linkCost; 
+					min_neighbour = neighbour;
+				}              
+			}                   
+		}
+		setcolor(RED);
 
-     originVertex = currentVertex;
+		setlinestyle(SOLID_LINE, 1, 1);
 
- while(1){
-     min_g_plus_c = INF;
-     for(int m=0; m < DIRECTIONS; m++){
+		line(min_neighbour->centre.x, min_neighbour->centre.y, currentVertex->centre.x, currentVertex->centre.y);
 
-           neighbour = originVertex->move[m];
-
-           if(neighbour != NULL && neighbour->type != '1'){
-
-                                 linkCost = originVertex->linkCost[m];
-
-                g=(originVertex->move[m])->g;
-
-               if(min_g_plus_c > sum(g,linkCost)){
-
-                       min_g_plus_c = sum(g,linkCost);
-
-                                        min_g=g;
-
-                                        min_linkCost = linkCost; 
-
-                       min_neighbour = neighbour;
-
-                }              
-
-           }                   
-
-     }
-
- 
-
-     setcolor(RED);
-
-     setlinestyle(SOLID_LINE, 1, 1);
-
-     line(min_neighbour->centre.x, min_neighbour->centre.y, currentVertex->centre.x, currentVertex->centre.y);
-
- 
-
-     if(currentVertex == &map[goalVertex.row][goalVertex.col])
-
-           break;
-
- }
-
- 
-
+		if(currentVertex == &map[goalVertex.row][goalVertex.col])
+			break;
+	}
 }
 //---
 
@@ -433,6 +443,7 @@ void GridWorld::displayVertexConnections(int i, int j)
  
   
 }
+
 
 
 //output: display entire map connections

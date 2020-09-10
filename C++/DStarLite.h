@@ -17,8 +17,8 @@ class DStarLite {
     public:
         DStarLite(int _rows, int _cols);
         void initialise(int _startI, int _startJ, int _goalI, int _goalJ);
-        void computeShortestPath(void);
-        void computeShortestPathStep(int steps);
+        bool computeShortestPath(void);
+        bool computeShortestPathStep(int steps);
         void updateVertex(vertex * u, vertex * uPrime);
 
         void remove(vertex * v);

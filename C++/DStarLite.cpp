@@ -73,7 +73,7 @@ void DStarLite::initialise(int _startJ, int _startI, int _goalJ, int _goalI) {
     //cout << U[0]->key[0] << U[0]->key[1] << '\n';
 }
 
-void DStarLite::computeShortestPath(void) {
+bool DStarLite::computeShortestPath(void) {
     while (lt(topKey(), calcKeys(startI, startJ)) || (maze[startI][startJ].rhs != maze[startI][startJ].g)) {
          Key kOld = topKey();
 
@@ -105,11 +105,12 @@ void DStarLite::computeShortestPath(void) {
             updateVertex(u, u);
         }
     }
+    return 1;
 }
 
 
 
-void DStarLite::computeShortestPathStep(int steps) {
+bool DStarLite::computeShortestPathStep(int steps) {
     for (int z = 1; z < steps; z++) {
         if (lt(topKey(), calcKeys(startI, startJ)) || (maze[startI][startJ].rhs != maze[startI][startJ].g)) {
             Key kOld = topKey();
@@ -151,8 +152,8 @@ void DStarLite::computeShortestPathStep(int steps) {
             }
 
         } else {
-            cout << "Loop Broke" << '\n';
-            return;
+            cout << "Loop Broke (Goal Found?)" << '\n';
+            return 1;
         }
     cout << "\nEnd Step Q\n";
     for (int x=0; x < lenU; x++) {
@@ -165,6 +166,7 @@ void DStarLite::computeShortestPathStep(int steps) {
     }
     cout << '\n';
     }
+    return 0;
 }
 
 void DStarLite::updateVertex(vertex * u, vertex * uPrime) {

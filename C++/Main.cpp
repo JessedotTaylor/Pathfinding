@@ -69,6 +69,7 @@ DStarLite* D_Star_Lite;
 GridWorld grid_world;
 
 bool SHOW_MAP_DETAILS;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -87,6 +88,8 @@ void copyMazeToDisplayMap(GridWorld &gWorld, DStarLite* DStar){
 			for(int k=0; k < 2; k++){
 			  gWorld.map[i][j].key[k] = DStar->maze[i][j].key[k];			  
 			}
+
+			gWorld.map[i][j].neighbourData = DStar->maze[i][j].neighbourData;
 			
 			
 		}
@@ -99,6 +102,7 @@ void copyMazeToDisplayMap(GridWorld &gWorld, DStarLite* DStar){
 	for(int k=0; k < 2; k++){
 			  gWorld.map[DStar->start->y][DStar->start->x].key[k] = DStar->start->key[k];			  
 	}
+	gWorld.map[DStar->start->y][DStar->start->x].neighbourData = DStar->start->neighbourData;
 	
 	
 	gWorld.map[DStar->goal->y][DStar->goal->x].h = DStar->goal->h;
@@ -109,6 +113,9 @@ void copyMazeToDisplayMap(GridWorld &gWorld, DStarLite* DStar){
 	for(int k=0; k < 2; k++){
 			  gWorld.map[DStar->goal->y][DStar->goal->x].key[k] = DStar->goal->key[k];			  
 	}
+	gWorld.map[DStar->goal->y][DStar->goal->x].neighbourData = DStar->goal->neighbourData;
+
+	//cout << DStar->goal->neighbourData.cost[1] << " " << gWorld.map[DStar->goal->y][DStar->goal->x].neighbourData.cost[1] << '\n';
 	
 }
 
@@ -385,7 +392,8 @@ void runSimulation(char *fileName){
 				
 				case 108: 
 					D_Star_Lite->computeShortestPath();
-					cout << "Compute Done\n";
+					///cout << "Compute Done\n";
+					copyMazeToDisplayMap(grid_world, D_Star_Lite);
 					Sleep(200);
 					//~ algorithmSelection = DSTAR_ALGORITHM;
 					break;
@@ -393,7 +401,7 @@ void runSimulation(char *fileName){
 				case 15:
 					 
 					   if( rowSelected != -1 && colSelected != -1){
-							grid_world.displayVertexConnections(colSelected-1, rowSelected-1);
+							grid_world.displayVertexConnections(rowSelected-1, colSelected-1);
 						   //cout << "display connections" << endl;
 						   rowSelected=-1;
 						   colSelected=-1;
@@ -402,6 +410,7 @@ void runSimulation(char *fileName){
 							break;
 						}
 						//--------------------------------------------
+						Sleep(200);
 					   action = -1;
 					    break;
 						
@@ -496,10 +505,16 @@ void runSimulation(char *fileName){
 					break;
 				
 				case 110:					
-					D_Star_Lite->updateHValues();
+					//D_Star_Lite->updateHValues();
+					
 					copyMazeToDisplayMap(grid_world, D_Star_Lite);
 					cout << "copied algorithm's maze to display map" << endl;
 					action = -1;
+					//cout << "sLast: (" << (char)((D_Star_Lite->sLast->row-1) + 'A') << " " << (D_Star_Lite->sLast->col-1) << ")\n";
+					grid_world.displayPath(D_Star_Lite->sLast);
+					Sleep(200);
+					
+					
 					break;
 				
 				case 9: //display g-values only

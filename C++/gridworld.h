@@ -45,6 +45,7 @@ public:
 	
 	void displayVertexConnections(int i, int j) ;
 	void displayMapConnections();
+	void displayPath(vertex* startV);
 	void displayPath(vertex* currentVertex, vertex* min_neighbour);
    //------------------------------------------------
 	void drawGrid();
