@@ -24,7 +24,7 @@
 
 
 DStarLite::DStarLite(int _rows, int _cols){
-    cout << "DStar Called\n";
+    //cout << "DStar Called\n";
     rows = _rows;
     cols = _cols;
 
@@ -91,15 +91,15 @@ bool DStarLite::computeShortestPath(void) {
             u->g = u->rhs;
 
             for(int m=0; m < DIRECTIONS; m++) {
-                if (u->neighbourData.cost[m] != INF) {
-                    updateVertex(&(maze[u->neighbourData.realIJ[m].i][u->neighbourData.realIJ[m].j]), u);
+                if (u->linkCost[m] != INF) {
+                    updateVertex(u->move[m], u);
                 }
             }
         } else {
             u->g = INF;
             for(int m=0; m < DIRECTIONS; m++) {
-                if (u->neighbourData.cost[m] != INF) {
-                    updateVertex(&(maze[u->neighbourData.realIJ[m].i][u->neighbourData.realIJ[m].j]), u);
+                if (u->linkCost[m] != INF) {
+                    updateVertex(u->move[m], u);
                 }
             }
             updateVertex(u, u);
@@ -120,7 +120,7 @@ bool DStarLite::computeShortestPathStep(int steps) {
             
             cout << "\nStep: " << z << '\n';
             //cout << "D-Q: ("<< u->row <<", " << u->col << ")\n";
-            cout << "D-Q: (" << (char)((u->row-1) + 'A') << " " << (u->col-1) << ")\n";
+            cout << "D-Q: \n(" << (char)((u->row-1) + 'A') << ", " << (u->col-1) << ")\n[" << u->key[0] << ", " << u->key[1] << "]\n";
             
             
             if (lt(kOld, calcKeys(u->row, u->col))) {
@@ -137,15 +137,18 @@ bool DStarLite::computeShortestPathStep(int steps) {
                 // cout << '\n';
 
                 for(int m=0; m < DIRECTIONS; m++) {
-                    if (u->neighbourData.cost[m] != INF) {
-                        updateVertex(&(maze[u->neighbourData.realIJ[m].i][u->neighbourData.realIJ[m].j]), u);
+                    //cout << u->linkCost[m];
+                    if (u->linkCost[m] != INF) {
+                        //cout << u->move[m]->h << maze[u->move[m]->row][u->move[m]->col].h  <<  u->h << '\n';
+                        //updateVertex(&maze[u->move[m]->row][u->move[m]->col], u);
+                        updateVertex(u->move[m], u);
                     }
                 }
             } else {
                 u->g = INF;
                 for(int m=0; m < DIRECTIONS; m++) {
-                    if (u->neighbourData.cost[m] != INF) {
-                        updateVertex(&(maze[u->neighbourData.realIJ[m].i][u->neighbourData.realIJ[m].j]), u);
+                    if (u->linkCost[m] != INF) {
+                        updateVertex(u->move[m], u);
                     }
                 }
                 updateVertex(u, u);
@@ -158,7 +161,7 @@ bool DStarLite::computeShortestPathStep(int steps) {
     cout << "\nEnd Step Q\n";
     for (int x=0; x < lenU; x++) {
         //cout << "(" << U[x]->row << ", " << U[x]->col << ")\t";
-        cout << "(" << (char)((U[x]->row-1) + 'A') << " " << (U[x]->col-1) << ")\t";
+        cout << "(" << (char)((U[x]->row-1) + 'A') << ", " << (U[x]->col-1) << ")\t";
     }
     cout << '\n';
     for (int x=0; x < lenU; x++) {
@@ -170,40 +173,39 @@ bool DStarLite::computeShortestPathStep(int steps) {
 }
 
 void DStarLite::updateVertex(vertex * u, vertex * uPrime) {
-    //cout << "updateVertex: (" << (char)((u->row-1) + 'A') << " " << (u->col-1) << ")\t";
+    bool debug =false;
+    if (debug) {cout << "updateVertex: (" << (char)((u->row-1) + 'A') << " " << (u->col-1) << ")\t";}
+    
     
     //") GoalI: " << goalI << " GoalJ: " << goalJ;
     //cout << u->row << u->col << '\n';
     if ((u->row != goalI) || (u->col != goalJ)) {
-        //cout << "Entered cost eval\t";
+
+        if (debug) {cout << "Entered cost eval\t";}
+
         int currMin = INF;
         for(int m=0; m < DIRECTIONS; m++) {
-            if (u->neighbourData.cost[m] != INF) {
-                int cost = maze[u->neighbourData.realIJ[m].i][u->neighbourData.realIJ[m].j].g + neighbours[m].cost;
+            if (u->linkCost[m] != INF) {
+                int cost = u->move[m]->g + neighbours[m].cost;
+                //cout << cost << '\n';
                 if (cost < currMin) {currMin = cost;}
-            }
-            
-            //cout << cost << '\n';
-            
+            } 
         }
         u->rhs = currMin;
     }
 
-    
-
     if (inQueue(u)) {
-        //cout << "Entered remove\t";
+        if (debug) {cout << "Entered remove\t";}
         remove(u);
     }
 
-
-
     if (u->g != u->rhs) {
-        //cout << "Entered insert\t";
+        if (debug) {cout << "Entered insert\t";}
+        //cout << '\n' << u->g <<  u->rhs << u->h << '\n';
         insert(u, calcKeys(u));
     }
 
-    //cout << '\n';
+    if (debug) {cout << '\n';}
 }
 
 void DStarLite::remove(vertex * v) {
@@ -268,6 +270,7 @@ Key DStarLite::topKey(void) {
 }
 
 Key DStarLite::calcKeys(vertex * v) {
+    //cout << v->g <<  v->rhs << v->h << '\n';
     double key2 = minVal(v->g, v->rhs);
     double key1 = key2 + v->h + km;
     v->key[0] = key1;

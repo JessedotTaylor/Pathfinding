@@ -64,18 +64,18 @@ const double SQRT_2 =  1.4142135623731;
 	  //~ int y;
 	//~ } succ[8]={ {1,0}, {1, 1}, {0,1}, {-1, 1}, {-1, 0}, {-1,-1}, {0, -1}, {1, -1} };
 	
-	struct Neighbours 
-    {
-    	struct {
-    	    int i;
-    	    int j;
-    	} realIJ[8] = { {INF,INF}, {INF, INF}, {INF, INF}, 
-						{INF, INF}, {INF, INF}, 
-						{INF, INF}, {INF, INF}, {INF, INF} };
-    	double cost[8]={ INF, INF, INF, 
-    		    	  INF,      INF, 
-    		    	  INF, INF, INF };
-    };
+	// struct Neighbours 
+    // {
+    // 	struct {
+    // 	    int i;
+    // 	    int j;
+    // 	} realIJ[8] = { {INF,INF}, {INF, INF}, {INF, INF}, 
+	// 					{INF, INF}, {INF, INF}, 
+	// 					{INF, INF}, {INF, INF}, {INF, INF} };
+    // 	double cost[8]={ INF, INF, INF, 
+    // 		    	  INF,      INF, 
+    // 		    	  INF, INF, INF };
+    // };
 #endif
 //-------------------------------------------------------------------------------
 
@@ -144,9 +144,9 @@ struct vertex
 	 double h;
 	 double f;
 	 double key[2];
-	 vertex* move[DIRECTIONS]; 
+	 vertex* move[DIRECTIONS];
     double linkCost[DIRECTIONS];	
-	Neighbours neighbourData;
+	//Neighbours neighbourData;
 #endif	
 	
 	

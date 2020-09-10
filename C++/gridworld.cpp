@@ -9,7 +9,7 @@ double sum(double a, double b){
 		}
     }
 void GridWorld::displayPath(vertex* startV) {
-	vertex * currentVertex = startV;
+	vertex * originVertex = startV;
 	//cout << "currentVertex: (" << (char)((currentVertex->row-1) + 'A') << " " << (currentVertex->col-1) << ")\n";
 	vertex * neighbour;
 	vertex * min_neighbour;
@@ -18,53 +18,50 @@ void GridWorld::displayPath(vertex* startV) {
 	double min_linkCost, min_g;
 
 	for(int m=0; m < DIRECTIONS; m++){
-		linkCost = currentVertex->neighbourData.cost[m];
-		cout << currentVertex->neighbourData.cost[m] << '\n';
-		if (linkCost != INF) {
-			neighbour = &map[currentVertex->neighbourData.realIJ[m].i][currentVertex->neighbourData.realIJ[m].j];
-			cout << "neighbour: (" << (char)((neighbour->row-1) + 'A') << " " << (neighbour->col-1) << ")\n";
-			if(neighbour != NULL && neighbour->type != '1'){
-				
-				g = neighbour->g;
-				cout << (g + linkCost) << " " << min_g_plus_c << '\n';
-				
-				if((g + linkCost) < min_g_plus_c){
-					min_g_plus_c = (g + linkCost);
-					min_g = g;
-					min_linkCost = linkCost; 
-					min_neighbour = neighbour;
-				} 
-			}
-		             
+		neighbour = originVertex->move[m];
+		if(neighbour != NULL && neighbour->type != '1'){
+			linkCost = originVertex->linkCost[m];
+			g = (originVertex->move[m])->g;
+			if(min_g_plus_c > sum(g,linkCost)){
+				min_g_plus_c = sum(g,linkCost);
+				min_g=g;
+				min_linkCost = linkCost; 
+				min_neighbour = neighbour;
+			}              
 		}                   
 	}
-	cout << "currentVertex: (" << (char)((currentVertex->row-1) + 'A') << " " << (currentVertex->col-1) << ")\n";
-	cout << "min_neighbour: (" << (char)((min_neighbour->row-1) + 'A') << " " << (min_neighbour->col-1) << ")\n";
 
-	//displayPath(currentVertex, min_neighbour);
+	//cout << "originVertex: (" << (char)((originVertex->row-1) + 'A') << " " << (originVertex->col-1) << ")\n";
+	//cout << "min_neighbour: (" << (char)((min_neighbour->row-1) + 'A') << " " << (min_neighbour->col-1) << ")\n";
+
+	displayPath(originVertex, min_neighbour);
 }
 
 //---
-void GridWorld::displayPath(vertex* currentVertex, vertex* min_neighbour){
+void GridWorld::displayPath(vertex* originVertex, vertex* min_neighbour){
 	//---
 	vertex* neighbour; 
-	vertex* originVertex;
+	vertex* currentVertex;
+	
 
 	double min_g_plus_c = INF;
 	double linkCost, g;
 	double min_linkCost, min_g;
 	//---
 
-	originVertex = currentVertex;
+	currentVertex = originVertex;
+	int i =0;
+	int breakVal = 10;
 
-	while(1){
+	while(i < breakVal){
 		min_g_plus_c = INF;
 
 		for(int m=0; m < DIRECTIONS; m++){
-			neighbour = originVertex->move[m];
+			neighbour = currentVertex->move[m];
+			//cout << "(" << (char)((currentVertex->move[m]->row-1) + 'A') << " " << (currentVertex->move[m]->col-1) << ")\t";
 			if(neighbour != NULL && neighbour->type != '1'){
-				linkCost = originVertex->linkCost[m];
-				g = (originVertex->move[m])->g;
+				linkCost = currentVertex->linkCost[m];
+				g = neighbour->g;
 				if(min_g_plus_c > sum(g,linkCost)){
 					min_g_plus_c = sum(g,linkCost);
 					min_g=g;
@@ -75,12 +72,26 @@ void GridWorld::displayPath(vertex* currentVertex, vertex* min_neighbour){
 		}
 		setcolor(RED);
 
-		setlinestyle(SOLID_LINE, 1, 1);
+		setlinestyle(SOLID_LINE, 2, 2);
 
-		line(min_neighbour->centre.x, min_neighbour->centre.y, currentVertex->centre.x, currentVertex->centre.y);
+		// cout << "\noriginVertex: (" << (char)((originVertex->row-1) + 'A') << " " << (originVertex->col-1) << ")\n";
+		// cout << "currentVertex: (" << (char)((currentVertex->row-1) + 'A') << " " << (currentVertex->col-1) << ")\n";
+		// cout << "min_neighbour: (" << (char)((min_neighbour->row-1) + 'A') << " " << (min_neighbour->col-1) << ")\n\n";
 
-		if(currentVertex == &map[goalVertex.row][goalVertex.col])
+		// cout << "(" << map[min_neighbour->row][min_neighbour->col].centre.x << ", " << map[min_neighbour->row][min_neighbour->col].centre.y << ") (" << map[currentVertex->row][currentVertex->col].centre.x << ", " << map[currentVertex->row][currentVertex->col].centre.y << ")\n";
+		line(map[min_neighbour->row][min_neighbour->col].centre.x, map[min_neighbour->row][min_neighbour->col].centre.y, map[currentVertex->row][currentVertex->col].centre.x, map[currentVertex->row][currentVertex->col].centre.y);
+
+		if((min_neighbour->row == map[goalVertex.row][goalVertex.col].row) && (min_neighbour->col == map[goalVertex.row][goalVertex.col].col)){
 			break;
+		}	
+		else {
+			currentVertex = min_neighbour;
+		}
+		i++;
+	}
+	if (i > breakVal) {
+		cout << "Loop Force Broken (i > "<< breakVal << ")\n";
+		return;
 	}
 }
 //---
@@ -301,12 +312,12 @@ void GridWorld::initialiseMapConnections()
 							   //map[j][i].move[m] = neighbour;
 								originVertex->move[m] = neighbour;
 								originVertex->linkCost[m] = 1.0;
-								originVertex->neighbourData.cost[m] = 1.0;
+								//originVertex->neighbourData.cost[m] = 1.0;
 							} else if(neighbour->type == '1'){
 								
 								originVertex->move[m] = neighbour; //THIS IS ONLY A TEST
 								originVertex->linkCost[m] = INF;
-								originVertex->neighbourData.cost[m] = INF;
+								//originVertex->neighbourData.cost[m] = INF;
 							}
 							
 						}
@@ -368,7 +379,7 @@ void GridWorld::displayVertexConnections(int i, int j)
 		 displayHeader();
 		//---------------------------------------		
 		
-		cout << "vertex(x = " << i << ", y= " << j << endl;
+		cout << "vertex(x = " << i << ", y= " << j << ")\n";
 			//for(int j =0; j < GRIDWORLD_ROWS; j++) //row
 			//{
 				
@@ -376,21 +387,21 @@ void GridWorld::displayVertexConnections(int i, int j)
 				//{
 		
 		         //If the cell is not a BLOCKED CELL
-		         if(map[j][i].type != '1'){
+		         if(map[i][j].type != '1'){
 		
-						originVertex = &map[j][i];
+						originVertex = &map[i][j];
 						for(int m=0; m < DIRECTIONS; m++){
-							neighbour = map[j][i].move[m];
+							neighbour = map[i][j].move[m];
 							if(neighbour != NULL && neighbour->type != '1'){
 								cout << "cost[" << m << "] = " << originVertex->linkCost[m] << endl; 
 								//setcolor(RED);
 								setcolor(YELLOW);
 								setlinestyle(WIDE_DOT_FILL, 2, 2);
-							   line(neighbour->centre.x, neighbour->centre.y, originVertex->centre.x, originVertex->centre.y);	
+							   	line(neighbour->centre.x, neighbour->centre.y, originVertex->centre.x, originVertex->centre.y);	
 							}  else if(neighbour->type == '1'){
 								setcolor(RED);
 								setlinestyle(WIDE_DOT_FILL, 2, 2);
-							   line(neighbour->centre.x, neighbour->centre.y, originVertex->centre.x, originVertex->centre.y);	
+							   	line(neighbour->centre.x, neighbour->centre.y, originVertex->centre.x, originVertex->centre.y);	
 								cout << "cost[" << m << "] = " << originVertex->linkCost[m] << endl; //<< "blocked cell" << endl; 
 								
 							}
