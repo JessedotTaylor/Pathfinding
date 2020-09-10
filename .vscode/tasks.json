@@ -21,11 +21,26 @@
                 "isDefault": true
             }
         },
-        {
-            "label": "Run",
-            "type": "shell",
-            "command": ["${workspaceRoot}\\C++\\Main.exe grids/grid_lpa_journal.map m"],
-            "group": "test",
-        }
+        // {
+        //     "label": "Run",
+        //     "type": "shell",
+        //     "command": ["${workspaceRoot}\\C++\\Main.exe grids/grid_Dstar_journal.map m"],
+        //     "group": "test",
+        // },
+        // {
+        //     "label": "Debug - DStarLite",
+        //     "type": "shell",
+        //     "command": "g++ -g DStarLite.cpp globalVariables.h DStarLite.h -o a",
+        //     // "args": [
+        //     //     "-g "
+        //     // ],
+        //     "options": {
+        //         "cwd": "${workspaceRoot}\\C++"
+        //     },
+        //     "problemMatcher": [
+        //         "$gcc"
+        //     ]
+        // }
+
     ]
 }

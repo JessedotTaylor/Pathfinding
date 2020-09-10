@@ -221,7 +221,7 @@ class Vertex:
 
     def leG(self, other):
         self._accessRead += 1
-        if self._key <= other._key:
+        if self._g <= other.getG():
             return True
         return False
 

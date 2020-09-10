@@ -7,7 +7,7 @@
 #include "gridworld.h"
 
 
- LpaStar::LpaStar(int rows_, int cols_){
+LpaStar::LpaStar(int rows_, int cols_){
 		 rows = rows_;
 	    cols = cols_;
 	 
@@ -21,8 +21,9 @@
 void LpaStar::initialise(int startX, int startY, int goalX, int goalY){
 	for(int i=0; i < rows; i++){
 	   for(int j=0; j < cols; j++){
-		   maze[i][j].g = INF;
+		   	maze[i][j].g = INF;
 			maze[i][j].rhs = INF;
+			
 		}
 	}
 	start = new LpaStarCell;
@@ -67,8 +68,7 @@ double LpaStar::minValue(double g_, double rhs_){
 	}	
 }
 
-int LpaStar::maxValue(int v1, int v2){
-	
+int LpaStar::maxValue(int v1, int v2){	
 	if(v1 >= v2){
 		return v1;
 	} else {

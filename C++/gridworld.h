@@ -9,6 +9,7 @@
 #include "globalvariables.h"
 #include "graphics.h"
 #include "LpaStar.h"
+#include "DStarLite.h"
 
 
 class GridWorld{
@@ -44,6 +45,7 @@ public:
 	
 	void displayVertexConnections(int i, int j) ;
 	void displayMapConnections();
+	void displayPath(vertex* startV);
 	void displayPath(vertex* currentVertex, vertex* min_neighbour);
    //------------------------------------------------
 	void drawGrid();
@@ -187,6 +189,8 @@ public:
 	// friend functions
 	friend void copyMazeToDisplayMap(GridWorld &gWorld, LpaStar* lpa);
 	friend void copyDisplayMapToMaze(GridWorld &gWorld, LpaStar* lpa);
+	friend void copyMazeToDisplayMap(GridWorld &gWorld, DStarLite* DStar);
+    friend void copyDisplayMapToMaze(GridWorld &gWorld, DStarLite* DStar);
 	
 private:
 	int cellWidth;
