@@ -21,12 +21,13 @@ class DStarLite {
         bool computeShortestPathStep(int steps);
         void updateVertex(vertex * u, vertex * uPrime);
 
-        void remove(vertex * v);
+        void remove(vertex * v); // Could be updated to take int val
         bool inQueue(vertex * v);
         vertex * pop(void);
         void insert(vertex *v, double key0, double key1);
         void insert(vertex *v, Key inpKey);
         Key topKey(void);
+
         Key calcKeys(vertex * v);
         Key calcKeys(int i, int j);
 
@@ -65,6 +66,9 @@ class DStarLite {
         vertex *sLast;
         vertex *start;
         vertex *goal;
+
+        char alg = 'D';
+        int searchState = 0;
 };
 
 #endif

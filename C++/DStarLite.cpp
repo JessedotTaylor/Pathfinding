@@ -260,7 +260,6 @@ void DStarLite::insert(vertex *v, Key inpKey) {
     insert(v, key0, key1);
 }
 
-
 Key DStarLite::topKey(void) {
     if (lenU > 0) {
         tempKey.keyV[0] = U[0]->key[0];

@@ -66,6 +66,10 @@ int qLengthAfterSearch;
 
 ///////////////////////////////////////////////////////////////////////////////
 DStarLite* D_Star_Lite;
+LpaStar * lpa_star;
+char alg;
+bool pathFound = false;
+
 GridWorld grid_world;
 
 bool SHOW_MAP_DETAILS;
@@ -97,29 +101,30 @@ void copyMazeToDisplayMap(GridWorld &gWorld, DStarLite* DStar){
 			}
 		}
 	}
-	// gWorld.map[DStar->start->y][DStar->start->x].h = DStar->start->h;
-	// gWorld.map[DStar->start->y][DStar->start->x].g = DStar->start->g;
-	// gWorld.map[DStar->start->y][DStar->start->x].rhs = DStar->start->rhs;
-	// gWorld.map[DStar->start->y][DStar->start->x].row = DStar->start->y;
-	// gWorld.map[DStar->start->y][DStar->start->x].col = DStar->start->x;
-	// for(int k=0; k < 2; k++){
-	// 		  gWorld.map[DStar->start->y][DStar->start->x].key[k] = DStar->start->key[k];			  
-	// }
-	// //gWorld.map[DStar->start->y][DStar->start->x].neighbourData = DStar->start->neighbourData;
-	
-	
-	// gWorld.map[DStar->goal->y][DStar->goal->x].h = DStar->goal->h;
-	// gWorld.map[DStar->goal->y][DStar->goal->x].g = DStar->goal->g;
-	// gWorld.map[DStar->goal->y][DStar->goal->x].rhs = DStar->goal->rhs;
-	// gWorld.map[DStar->goal->y][DStar->goal->x].row = DStar->goal->y;
-	// gWorld.map[DStar->goal->y][DStar->goal->x].col = DStar->goal->x;
-	// for(int k=0; k < 2; k++){
-	// 		  gWorld.map[DStar->goal->y][DStar->goal->x].key[k] = DStar->goal->key[k];			  
-	// }
-	//gWorld.map[DStar->goal->y][DStar->goal->x].neighbourData = DStar->goal->neighbourData;
+}
 
-	//cout << DStar->goal->neighbourData.cost[1] << " " << gWorld.map[DStar->goal->y][DStar->goal->x].neighbourData.cost[1] << '\n';
-	
+void copyMazeToDisplayMap(GridWorld &gWorld, LpaStar* LPA){
+	for(int i=0; i < gWorld.getGridWorldRows(); i++){
+	   for(int j=0; j < gWorld.getGridWorldCols(); j++){
+			gWorld.map[i][j].type = LPA->maze[i][j].type;
+		   	gWorld.map[i][j].h = LPA->maze[i][j].h;
+			gWorld.map[i][j].g = LPA->maze[i][j].g;
+			gWorld.map[i][j].rhs = LPA->maze[i][j].rhs;
+			// gWorld.map[i][j].row = LPA->maze[i][j].y;
+			// gWorld.map[i][j].col = LPA->maze[i][j].x;
+			
+			for(int k=0; k < 2; k++){
+			  gWorld.map[i][j].key[k] = LPA->maze[i][j].key[k];			  
+			}
+
+			for(int m=0; m < DIRECTIONS; m++) {
+				if (LPA->maze[i][j].move[m] != NULL) {
+					gWorld.map[i][j].move[m] = &(gWorld.map[LPA->maze[i][j].move[m]->row][LPA->maze[i][j].move[m]->col]);
+				}
+				gWorld.map[i][j].linkCost[m] = LPA->maze[i][j].linkCost[m];
+			}
+		}
+	}
 }
 
 //--------------------------------------------------------------
@@ -143,8 +148,26 @@ void copyDisplayMapToMaze(GridWorld &gWorld, DStarLite* DStar){
 			}
 		}
 	}
-	cout << "(" << gWorld.map[0][0].x << ", " << gWorld.map[0][0].y
-	 << ")\n";
+
+}
+
+void copyDisplayMapToMaze(GridWorld &gWorld, LpaStar* LPA){
+	for(int i=0; i < gWorld.getGridWorldRows(); i++){
+	   for(int j=0; j < gWorld.getGridWorldCols(); j++){
+			LPA->maze[i][j].type = gWorld.map[i][j].type;
+
+			LPA->maze[i][j].col = gWorld.map[i][j].col;
+			LPA->maze[i][j].row = gWorld.map[i][j].row;
+
+			for(int m=0; m < DIRECTIONS; m++) {
+				if (gWorld.map[i][j].move[m] != NULL) {
+					LPA->maze[i][j].move[m] = &(LPA->maze[gWorld.map[i][j].move[m]->row][gWorld.map[i][j].move[m]->col]);
+				}
+
+				LPA->maze[i][j].linkCost[m] = gWorld.map[i][j].linkCost[m];
+			}
+		}
+	}
 
 }
 
@@ -156,7 +179,41 @@ void copyDisplayMapToMaze(GridWorld &gWorld, DStarLite* DStar){
 ///////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
 ///////////////////////////////////////////////////////////////////////////////
-
+ void updateMap(GridWorld &gWorld, LpaStar* LPA) {
+	for(int i=0; i < gWorld.getGridWorldRows(); i++){
+	   for(int j=0; j < gWorld.getGridWorldCols(); j++){
+		   switch (gWorld.map[i][j].type)
+		   {
+			case '8':
+			{
+				gWorld.map[i][j].type = '0';
+				
+				break;
+			}
+			case '9':
+			{
+				gWorld.map[i][j].type= '1';
+				
+				LPA->maze[i][j].g = INF;
+				gWorld.map[i][j]. g = INF;
+				
+				LPA->maze[i][j].rhs = INF;
+				gWorld.map[i][j]. rhs = INF;
+				for(int m=0; m < DIRECTIONS; m++) {
+					gWorld.map[i][j].linkCost[m] = INF;
+					LPA->maze[i][j].linkCost[m] = INF;
+					if (LPA->maze[i][j].move[m]->type != '1'){
+						LPA->updateVertex(LPA->maze[i][j].move[m], &(LPA->maze[i][j]));
+					}
+				}
+				break;
+			}
+			default:
+			   break;
+		   }
+	   }
+	}
+ }
 
 
 
@@ -202,12 +259,12 @@ int getKey(){
 		  return 108;
     }
 	 
-	 //copy display map to algorithm's maze
+	 //copy display map to algorithim's maze
 	 if(GetAsyncKeyState(VK_F9) < 0) {
 		  return 109;
     }
 	 
-	 //copy algorithm's maze to display map
+	 //copy algorithim's maze to display map
 	 if(GetAsyncKeyState(VK_F10) < 0) {
 		  return 110;
     }
@@ -295,20 +352,25 @@ void runSimulation(char *fileName){
 	//----------------------------------------------------------------
 	//D*Lite
 	D_Star_Lite = new DStarLite(grid_world.getGridWorldRows(), grid_world.getGridWorldCols());
+
+	//LPA*
+	lpa_star = new LpaStar(grid_world.getGridWorldRows(), grid_world.getGridWorldCols());
+	
 	vertex start = grid_world.getStartVertex();
 	vertex goal = grid_world.getGoalVertex();
 	
 	cout << "(start.col = " << start.col << ", start.row = " << start.row << ")" << endl;
 	cout << "(goal.col = " << goal.col << ", goal.row = " << goal.row << ")" << endl;
 	
-	//cout << "Start init\n";
+	//cout << "Start D* init\n";
 	D_Star_Lite->initialise(start.col, start.row, goal.col, goal.row);
+	//cout << "End D* init, Start lPA* init\n";
+	lpa_star->initialise(start.col, start.row, goal.col, goal.row);
 	//cout << "End init\n";
 	
-	//D_Star_Lite->copyMazeToDisplayMap(grid_world);
-	//copyMazeToDisplayMap(grid_world, D_Star_Lite);
 	//cout << "Start Copy\n";
 	copyDisplayMapToMaze(grid_world, D_Star_Lite);
+	copyDisplayMapToMaze(grid_world, lpa_star);
 	//cout << "End Copy\n";
 	//----------------------------------------------------------------
 	//cout << "Pre World Boundary\n";
@@ -339,41 +401,69 @@ void runSimulation(char *fileName){
 			 
 			 switch(action){
 				case 1: //Block selected cell
-				 		if( rowSelected != -1 && colSelected != -1){
-							grid_world.setMapTypeValue(rowSelected-1, colSelected-1, '1');
+				{
+					if( rowSelected != -1 && colSelected != -1){
+						grid_world.setMapTypeValue(rowSelected-1, colSelected-1, '1');
+						grid_world.initialiseMapConnections(); 
 							grid_world.initialiseMapConnections(); 
-							
-							rowSelected=-1;
-							colSelected=-1;
-						}
-						action = -1;
-						break;
+						grid_world.initialiseMapConnections(); 
+						
+						rowSelected=-1;
+						colSelected=-1;
+					}
+					action = -1;
+					break;
+				}
 				
 				case 105: 
-					   grid_world.displayMapWithKeyDetails();
-						break;
+					grid_world.displayMapWithKeyDetails();
+					break;
 				
 				case 106: 
-					  
-					   //~ algorithmSelection = ASTAR_ALGORITHM;
 						break;
 				
 				case 107: 
-					  
-					   //~ algorithmSelection = LPASTAR_ALGORITHM;
-						break;
+					switch (lpa_star->searchState){
+						case 0:
+						{
+							pathFound = lpa_star->computeShortestPath();
+							lpa_star->searchState = 1;
+							break;
+						}
+						case 1:
+						{
+							updateMap(grid_world, lpa_star);
+							copyDisplayMapToMaze(grid_world, lpa_star);
+							pathFound = lpa_star->computeShortestPath();
+							lpa_star->searchState = 2;
+							break;
+						}
+						default:
+							break;
+					}
+					//lpa_star->computeShortestPathStep(15);
+					///cout << "Compute Done\n";
+					if (pathFound) {
+						copyMazeToDisplayMap(grid_world, lpa_star);
+						cout << "copied lpa_star's 'maze' to display 'map'" << endl;
+						alg = lpa_star->alg;
+					}
+					
+					Sleep(200);
+					break;
 				
 				case 108: 
 					//D_Star_Lite->computeShortestPathStep(10);
 					D_Star_Lite->computeShortestPath();
 					///cout << "Compute Done\n";
 					copyMazeToDisplayMap(grid_world, D_Star_Lite);
-					cout << "copied algorithm's 'maze' to display 'map'" << endl;
+					cout << "copied D_Star_Lite's 'maze' to display 'map'" << endl;
+					alg = D_Star_Lite->alg;
 					Sleep(200);
-					//~ algorithmSelection = DSTAR_ALGORITHM;
 					break;
 				
 				case 15:
+				{
 					if( rowSelected != -1 && colSelected != -1){
 						grid_world.displayVertexConnections(rowSelected-1, colSelected-1);
 						//cout << "display connections" << endl;
@@ -387,118 +477,133 @@ void runSimulation(char *fileName){
 					//Sleep(200);
 					action = -1;
 					break;
-						
+				}		
+				
 				case 16:
-					 
-					   if(grid_world.isGridMapInitialised()){
-							grid_world.displayMapConnections();
-						   //cout << "display connections" << endl;
-						   //~ rowSelected=-1;
-						   //~ colSelected=-1;
-					   } else {
-							cout << "map has not been initialised yet." << endl;
-							break;
-						}
-						//--------------------------------------------
-					   action = -1;
-					    break;		
+				{
+					if(grid_world.isGridMapInitialised()){
+						grid_world.displayMapConnections();
+						//cout << "display connections" << endl;
+						//~ rowSelected=-1;
+						//~ colSelected=-1;
+					} else {
+						cout << "map has not been initialised yet." << endl;
+						break;
+					}
+					//--------------------------------------------
+					action = -1;
+					break;		
+			 		}
 				
 				case 6: //set cell as new START vertex 
-				   {
-					   //--------------------------------------------
-				      // retrieve current START vertex
-				      vertex s = 	grid_world.getStartVertex();
-				      if( (s.row != -1) && (s.col != -1) ){
-							//set current START VERTEX to an ordinary TRAVERSABLE CELL
-							grid_world.setMapTypeValue(s.row, s.col, '0'); 
-							grid_world.initialiseMapConnections(); 
-							//ok, proceed
-						} else {
-							cout << "invalid START vertex" << endl;
-							break;
-						}
-				      //--------------------------------------------
-						//set selected cell as the NEW START VERTEX
-					   if( rowSelected != -1 && colSelected != -1){
-						   grid_world.setMapTypeValue(rowSelected-1, colSelected-1, '6');
-						   s.row = rowSelected-1;
-							s.col = colSelected-1;
-							grid_world.setStartVertex(s);
-							
-						   rowSelected=-1;
-						   colSelected=-1;
-					   } else {
-							cout << "invalid new START vertex, please select a new START vertex first." << endl;
-							break;
-						}
-						//--------------------------------------------
-					   action = -1;
+				{
+					//--------------------------------------------
+					// retrieve current START vertex
+					vertex s = 	grid_world.getStartVertex();
+					if( (s.row != -1) && (s.col != -1) ){
+						//set current START VERTEX to an ordinary TRAVERSABLE CELL
+						grid_world.setMapTypeValue(s.row, s.col, '0'); 
+						grid_world.initialiseMapConnections(); 
+						//ok, proceed
+					} else {
+						cout << "invalid START vertex" << endl;
 						break;
+					}
+					//--------------------------------------------
+					//set selected cell as the NEW START VERTEX
+					if( rowSelected != -1 && colSelected != -1){
+						grid_world.setMapTypeValue(rowSelected-1, colSelected-1, '6');
+						s.row = rowSelected-1;
+						s.col = colSelected-1;
+						grid_world.setStartVertex(s);
+						
+						rowSelected=-1;
+						colSelected=-1;
+					} else {
+						cout << "invalid new START vertex, please select a new START vertex first." << endl;
+						break;
+					}
+					//--------------------------------------------
+					action = -1;
+					break;
 					}
 				
 				case 7: //set cell as new GOAL vertex 
-				   {
-					   //--------------------------------------------
-				      // retrieve current GOAL vertex
-				      vertex s = 	grid_world.getGoalVertex();
-				      if( (s.row != -1) && (s.col != -1) ){
-							//set current GOAL VERTEX to an ordinary TRAVERSABLE CELL
-							grid_world.setMapTypeValue(s.row, s.col, '0'); 
-							
-							//ok, proceed
-						} else {
-							cout << "invalid GOAL vertex" << endl;
-							action = -1;
-							break;
-						}
-				      //--------------------------------------------
-						//set selected cell as the NEW GOAL VERTEX
-					   if( rowSelected != -1 && colSelected != -1){
-						   grid_world.setMapTypeValue(rowSelected-1, colSelected-1, '7');
-						   s.row = rowSelected-1;
-							s.col = colSelected-1;
-							grid_world.setGoalVertex(s);
-							grid_world.initialiseMapConnections(); 
-							
-						   rowSelected=-1;
-						   colSelected=-1;
-					   } else {
-							cout << "invalid new GOAL vertex, please select a new GOAL vertex first." << endl;
-							action = -1;
-							break;
-						}
-						//--------------------------------------------
-					   action = -1;
+				{
+					//--------------------------------------------
+					// retrieve current GOAL vertex
+					vertex s = 	grid_world.getGoalVertex();
+					if( (s.row != -1) && (s.col != -1) ){
+						//set current GOAL VERTEX to an ordinary TRAVERSABLE CELL
+						grid_world.setMapTypeValue(s.row, s.col, '0'); 
+						
+						//ok, proceed
+					} else {
+						cout << "invalid GOAL vertex" << endl;
+						action = -1;
 						break;
 					}
-							
-            case 109:					
-					copyDisplayMapToMaze(grid_world, D_Star_Lite);
-					cout << "copied display map to algorithm's maze" << endl;
-					action = -1;
-					break;
-				
-				case 110:					
-					//D_Star_Lite->updateHValues();
-					cout << "Copy out start\n";
-					copyMazeToDisplayMap(grid_world, D_Star_Lite);
-					cout << "copied algorithm's maze to display map" << endl;
-					action = -1;
-					//cout << "sLast: (" << (char)((D_Star_Lite->sLast->row-1) + 'A') << " " << (D_Star_Lite->sLast->col-1) << ")\n";
-					grid_world.displayPath(D_Star_Lite->sLast);
-					Sleep(200);
-					
-					
-					break;
-				
-				case 9: //display g-values only
-					   grid_world.displayMapWithSelectedDetails(true, false, false, false);  //(bool display_g, bool display_rhs, bool display_h, bool display_key) 
-				      action = -1;
+					//--------------------------------------------
+					//set selected cell as the NEW GOAL VERTEX
+					if( rowSelected != -1 && colSelected != -1){
+						grid_world.setMapTypeValue(rowSelected-1, colSelected-1, '7');
+						s.row = rowSelected-1;
+						s.col = colSelected-1;
+						grid_world.setGoalVertex(s);
+						grid_world.initialiseMapConnections(); 
+						
+						rowSelected=-1;
+						colSelected=-1;
+					} else {
+						cout << "invalid new GOAL vertex, please select a new GOAL vertex first." << endl;
+						action = -1;
 						break;
-            case 10: //display h-values only
-					   grid_world.displayMapWithSelectedDetails(false, false, true, false);  //(bool display_g, bool display_rhs, bool display_h, bool display_key) 
-				 		action = -1;
-				      break;
+					}
+					//--------------------------------------------
+					action = -1;
+					break;
+					}
+							
+				case 109: //Copy 'map' to 'maze'
+				{					
+					copyDisplayMapToMaze(grid_world, D_Star_Lite);
+					cout << "copied display map to D_Star_Lite's maze" << endl;
+					copyDisplayMapToMaze(grid_world, lpa_star);
+					cout << "copied display map to lpa_star's maze" << endl;
+					action = -1;
+					Sleep(200);
+					break;
+				}	
+				
+				case 110:	
+				{				
+					//D_Star_Lite->updateHValues();
+					//cout << "Copy out start\n";
+
+					//----------------------- Add handling for multiple algorithims
+					if (alg == 'D') { //Last used algorithim D*
+						copyMazeToDisplayMap(grid_world, D_Star_Lite);
+						cout << "copied D_Star_Lite's maze to display map" << endl;
+						grid_world.displayPath(D_Star_Lite->sLast, D_Star_Lite->goal);
+
+					} else if (alg == 'L') { ////Last used algorithim LPA*
+						copyMazeToDisplayMap(grid_world, lpa_star);
+						cout << "copied lpa_star's maze to display map" << endl;
+						grid_world.displayPath(lpa_star->goal, lpa_star->start);
+					}
+					
+					action = -1;					
+					Sleep(200);
+					break;
+				}
+				case 9: //display g-values only
+					grid_world.displayMapWithSelectedDetails(true, false, false, false);  //(bool display_g, bool display_rhs, bool display_h, bool display_key) 
+					action = -1;
+					break;
+				case 10: //display h-values only
+					grid_world.displayMapWithSelectedDetails(false, false, true, false);  //(bool display_g, bool display_rhs, bool display_h, bool display_key) 
+					action = -1;
+					break;
 				case 11: //display key-values only
 					//D_Star_Lite->updateAllKeyValues();
 					//copyMazeToDisplayMap(grid_world, D_Star_Lite);
