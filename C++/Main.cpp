@@ -69,6 +69,7 @@ DStarLite* D_Star_Lite;
 GridWorld grid_world;
 
 bool SHOW_MAP_DETAILS;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -78,67 +79,73 @@ void copyMazeToDisplayMap(GridWorld &gWorld, DStarLite* DStar){
 	for(int i=0; i < gWorld.getGridWorldRows(); i++){
 	   for(int j=0; j < gWorld.getGridWorldCols(); j++){
 			gWorld.map[i][j].type = DStar->maze[i][j].type;
-		   gWorld.map[i][j].h = DStar->maze[i][j].h;
+		   	gWorld.map[i][j].h = DStar->maze[i][j].h;
 			gWorld.map[i][j].g = DStar->maze[i][j].g;
 			gWorld.map[i][j].rhs = DStar->maze[i][j].rhs;
-			gWorld.map[i][j].row = DStar->maze[i][j].y;
-			gWorld.map[i][j].col = DStar->maze[i][j].x;
+			// gWorld.map[i][j].row = DStar->maze[i][j].y;
+			// gWorld.map[i][j].col = DStar->maze[i][j].x;
 			
 			for(int k=0; k < 2; k++){
 			  gWorld.map[i][j].key[k] = DStar->maze[i][j].key[k];			  
 			}
-			
-			
+
+			for(int m=0; m < DIRECTIONS; m++) {
+				if (DStar->maze[i][j].move[m] != NULL) {
+					gWorld.map[i][j].move[m] = &(gWorld.map[DStar->maze[i][j].move[m]->row][DStar->maze[i][j].move[m]->col]);
+				}
+				gWorld.map[i][j].linkCost[m] = DStar->maze[i][j].linkCost[m];
+			}
 		}
 	}
-	gWorld.map[DStar->start->y][DStar->start->x].h = DStar->start->h;
-	gWorld.map[DStar->start->y][DStar->start->x].g = DStar->start->g;
-	gWorld.map[DStar->start->y][DStar->start->x].rhs = DStar->start->rhs;
-	gWorld.map[DStar->start->y][DStar->start->x].row = DStar->start->y;
-	gWorld.map[DStar->start->y][DStar->start->x].col = DStar->start->x;
-	for(int k=0; k < 2; k++){
-			  gWorld.map[DStar->start->y][DStar->start->x].key[k] = DStar->start->key[k];			  
-	}
+	// gWorld.map[DStar->start->y][DStar->start->x].h = DStar->start->h;
+	// gWorld.map[DStar->start->y][DStar->start->x].g = DStar->start->g;
+	// gWorld.map[DStar->start->y][DStar->start->x].rhs = DStar->start->rhs;
+	// gWorld.map[DStar->start->y][DStar->start->x].row = DStar->start->y;
+	// gWorld.map[DStar->start->y][DStar->start->x].col = DStar->start->x;
+	// for(int k=0; k < 2; k++){
+	// 		  gWorld.map[DStar->start->y][DStar->start->x].key[k] = DStar->start->key[k];			  
+	// }
+	// //gWorld.map[DStar->start->y][DStar->start->x].neighbourData = DStar->start->neighbourData;
 	
 	
-	gWorld.map[DStar->goal->y][DStar->goal->x].h = DStar->goal->h;
-	gWorld.map[DStar->goal->y][DStar->goal->x].g = DStar->goal->g;
-	gWorld.map[DStar->goal->y][DStar->goal->x].rhs = DStar->goal->rhs;
-	gWorld.map[DStar->goal->y][DStar->goal->x].row = DStar->goal->y;
-	gWorld.map[DStar->goal->y][DStar->goal->x].col = DStar->goal->x;
-	for(int k=0; k < 2; k++){
-			  gWorld.map[DStar->goal->y][DStar->goal->x].key[k] = DStar->goal->key[k];			  
-	}
+	// gWorld.map[DStar->goal->y][DStar->goal->x].h = DStar->goal->h;
+	// gWorld.map[DStar->goal->y][DStar->goal->x].g = DStar->goal->g;
+	// gWorld.map[DStar->goal->y][DStar->goal->x].rhs = DStar->goal->rhs;
+	// gWorld.map[DStar->goal->y][DStar->goal->x].row = DStar->goal->y;
+	// gWorld.map[DStar->goal->y][DStar->goal->x].col = DStar->goal->x;
+	// for(int k=0; k < 2; k++){
+	// 		  gWorld.map[DStar->goal->y][DStar->goal->x].key[k] = DStar->goal->key[k];			  
+	// }
+	//gWorld.map[DStar->goal->y][DStar->goal->x].neighbourData = DStar->goal->neighbourData;
+
+	//cout << DStar->goal->neighbourData.cost[1] << " " << gWorld.map[DStar->goal->y][DStar->goal->x].neighbourData.cost[1] << '\n';
 	
 }
 
 //--------------------------------------------------------------
 //copy map (of GridWorld)to maze (of LPA*)
 void copyDisplayMapToMaze(GridWorld &gWorld, DStarLite* DStar){
-	for(int i=0; i < gWorld.getGridWorldRows(); i++){
-	   for(int j=0; j < gWorld.getGridWorldCols(); j++){
+	int rows = gWorld.getGridWorldRows();
+	int cols = gWorld.getGridWorldCols();
+	for(int i=0; i < rows; i++){
+	   for(int j=0; j < cols; j++){
 			DStar->maze[i][j].type = gWorld.map[i][j].type;
-			DStar->maze[i][j].x = gWorld.map[i][j].col;
-			DStar->maze[i][j].y = gWorld.map[i][j].row;
-			
-		   //DStar->maze[i][j].g = gWorld.map[i][j].g;
-			//DStar->maze[i][j].rhs = gWorld.map[i][j].rhs;
+
+			DStar->maze[i][j].col = gWorld.map[i][j].col;
+			DStar->maze[i][j].row = gWorld.map[i][j].row;
+
+			for(int m=0; m < DIRECTIONS; m++) {
+				if (gWorld.map[i][j].move[m] != NULL) {
+					DStar->maze[i][j].move[m] = &(DStar->maze[gWorld.map[i][j].move[m]->row][gWorld.map[i][j].move[m]->col]);
+				}
+
+				DStar->maze[i][j].linkCost[m] = gWorld.map[i][j].linkCost[m];
+			}
 		}
 	}
-	
-	vertex startV = gWorld.getStartVertex();
-	vertex goalV = gWorld.getGoalVertex();
-	
-	//DStar->start->g = gWorld.map[startV.row][startV.col].g ;
-	//DStar->start->rhs = gWorld.map[startV.row][startV.col].rhs ;
-	DStar->start->x = gWorld.map[startV.row][startV.col].col;
-	DStar->start->y = gWorld.map[startV.row][startV.col].row;
-	
-	//DStar->goal->g = gWorld.map[goalV.row][goalV.col].g;
-	//DStar->goal->rhs = gWorld.map[goalV.row][goalV.col].rhs;
-	DStar->goal->x = gWorld.map[goalV.row][goalV.col].col;
-	DStar->goal->y = gWorld.map[goalV.row][goalV.col].row;
-	
+	cout << "(" << gWorld.map[0][0].x << ", " << gWorld.map[0][0].y
+	 << ")\n";
+
 }
 
 
@@ -280,7 +287,9 @@ void runSimulation(char *fileName){
 			
 	//Initialise the world boundaries
     grid_world.initSystemOfCoordinates();
+	//cout << "Starting Map Load\n";
 	grid_world.loadMapAndDisplay(fileName);
+	//cout << "Finished Loading Map\n";
 	grid_world.initialiseMapConnections();
 	
 	//----------------------------------------------------------------
@@ -292,21 +301,30 @@ void runSimulation(char *fileName){
 	cout << "(start.col = " << start.col << ", start.row = " << start.row << ")" << endl;
 	cout << "(goal.col = " << goal.col << ", goal.row = " << goal.row << ")" << endl;
 	
+	//cout << "Start init\n";
 	D_Star_Lite->initialise(start.col, start.row, goal.col, goal.row);
+	//cout << "End init\n";
 	
 	//D_Star_Lite->copyMazeToDisplayMap(grid_world);
 	//copyMazeToDisplayMap(grid_world, D_Star_Lite);
+	//cout << "Start Copy\n";
 	copyDisplayMapToMaze(grid_world, D_Star_Lite);
+	//cout << "End Copy\n";
 	//----------------------------------------------------------------
-		
+	//cout << "Pre World Boundary\n";
 	worldBoundary = grid_world.getWorldBoundary();
+	//cout << "World Boundary Found\n";
 	deviceBoundary = grid_world.getDeviceBoundary();
+	//cout << "Device Boundary Found\n";
 	GRIDWORLD_ROWS = grid_world.getGridWorldRows();
+	//cout << "Rows Found\n";
 	GRIDWORLD_COLS = grid_world.getGridWorldCols();
+	//cout << "Cols Found\n";
 	
 	//setvisualpage(page);
 	
 	// keep running the program until the ESC key is pressed   
+	//cout << "At While\n";
 	while((GetAsyncKeyState(VK_ESCAPE)) == 0 ) {
 			 setactivepage(page);
 			 cleardevice();
@@ -346,24 +364,29 @@ void runSimulation(char *fileName){
 						break;
 				
 				case 108: 
-					  
-					   //~ algorithmSelection = DSTAR_ALGORITHM;
-						break;
+					//D_Star_Lite->computeShortestPathStep(10);
+					D_Star_Lite->computeShortestPath();
+					///cout << "Compute Done\n";
+					copyMazeToDisplayMap(grid_world, D_Star_Lite);
+					cout << "copied algorithm's 'maze' to display 'map'" << endl;
+					Sleep(200);
+					//~ algorithmSelection = DSTAR_ALGORITHM;
+					break;
 				
 				case 15:
-					 
-					   if( rowSelected != -1 && colSelected != -1){
-							grid_world.displayVertexConnections(colSelected-1, rowSelected-1);
-						   //cout << "display connections" << endl;
-						   rowSelected=-1;
-						   colSelected=-1;
-					   } else {
-							cout << "invalid new START vertex, please select a new START vertex first." << endl;
-							break;
-						}
-						//--------------------------------------------
-					   action = -1;
-					    break;
+					if( rowSelected != -1 && colSelected != -1){
+						grid_world.displayVertexConnections(rowSelected-1, colSelected-1);
+						//cout << "display connections" << endl;
+						rowSelected=-1;
+						colSelected=-1;
+					} else {
+						cout << "invalid selected vertex, please select a vertex first." << endl;
+						break;
+					}
+					//--------------------------------------------
+					//Sleep(200);
+					action = -1;
+					break;
 						
 				case 16:
 					 
@@ -450,17 +473,23 @@ void runSimulation(char *fileName){
 					}
 							
             case 109:					
-					   copyDisplayMapToMaze(grid_world, D_Star_Lite);
-				      cout << "copied display map to algorithm's maze" << endl;
-				      action = -1;
-				      break;
+					copyDisplayMapToMaze(grid_world, D_Star_Lite);
+					cout << "copied display map to algorithm's maze" << endl;
+					action = -1;
+					break;
 				
 				case 110:					
-					   D_Star_Lite->updateHValues();
-					   copyMazeToDisplayMap(grid_world, D_Star_Lite);
-				      cout << "copied algorithm's maze to display map" << endl;
-				      action = -1;
-				      break;
+					//D_Star_Lite->updateHValues();
+					cout << "Copy out start\n";
+					copyMazeToDisplayMap(grid_world, D_Star_Lite);
+					cout << "copied algorithm's maze to display map" << endl;
+					action = -1;
+					//cout << "sLast: (" << (char)((D_Star_Lite->sLast->row-1) + 'A') << " " << (D_Star_Lite->sLast->col-1) << ")\n";
+					grid_world.displayPath(D_Star_Lite->sLast);
+					Sleep(200);
+					
+					
+					break;
 				
 				case 9: //display g-values only
 					   grid_world.displayMapWithSelectedDetails(true, false, false, false);  //(bool display_g, bool display_rhs, bool display_h, bool display_key) 
@@ -471,11 +500,11 @@ void runSimulation(char *fileName){
 				 		action = -1;
 				      break;
 				case 11: //display key-values only
-					   D_Star_Lite->updateAllKeyValues();
-				      copyMazeToDisplayMap(grid_world, D_Star_Lite);
-					   grid_world.displayMapWithSelectedDetails(false, false, false, true);  //(bool display_g, bool display_rhs, bool display_h, bool display_key) 
-						action = -1;
-				      break;
+					//D_Star_Lite->updateAllKeyValues();
+					//copyMazeToDisplayMap(grid_world, D_Star_Lite);
+					grid_world.displayMapWithSelectedDetails(false, false, false, true);  //(bool display_g, bool display_rhs, bool display_h, bool display_key) 
+					action = -1;
+					break;
 				
 				case 12: //make cell Traversable
 			 

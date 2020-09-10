@@ -23,6 +23,7 @@
 
 //------------------------------------------
 
+#define INF  1000000
 
 //-------------------------------------------------------------------------------
 #ifdef FOUR_CONNECTED_GRIDWORLD
@@ -45,21 +46,36 @@ const double SQRT_2 =  1.4142135623731;
 
 	//8-connected gridworld
 	#define DIRECTIONS 8
+	//#define CORNER_COST SQRT_2
+	#define CORNER_COST 1
 	
 	//movement sequence, used in the journal
 	const struct {
-	  int x;
-	  int y;
-	} neighbours[8]={ {-1,-1}, {0, -1}, {1, -1}, 
-					{-1, 0}, {1, 0}, 
-					{-1, 1}, {0, 1}, {1, 1} };
+	  int i;
+	  int j;
+	  double cost;
+	} neighbours[8]={ {-1,-1, CORNER_COST}, {0, -1, CORNER_COST}, {1, -1, CORNER_COST}, 
+					{-1, 0, CORNER_COST}, {1, 0, CORNER_COST}, 
+					{-1, 1, CORNER_COST}, {0, 1, CORNER_COST}, {1, 1, CORNER_COST} };
 			
 	//clockwise, starting at 3 o'clock			
 	//~ const struct {
 	  //~ int x;
 	  //~ int y;
 	//~ } succ[8]={ {1,0}, {1, 1}, {0,1}, {-1, 1}, {-1, 0}, {-1,-1}, {0, -1}, {1, -1} };
-		
+	
+	// struct Neighbours 
+    // {
+    // 	struct {
+    // 	    int i;
+    // 	    int j;
+    // 	} realIJ[8] = { {INF,INF}, {INF, INF}, {INF, INF}, 
+	// 					{INF, INF}, {INF, INF}, 
+	// 					{INF, INF}, {INF, INF}, {INF, INF} };
+    // 	double cost[8]={ INF, INF, INF, 
+    // 		    	  INF,      INF, 
+    // 		    	  INF, INF, INF };
+    // };
 #endif
 //-------------------------------------------------------------------------------
 
@@ -104,10 +120,18 @@ enum vertexStatus{UNEXPLORED=0, EXPANDED=1, ACCESSED=2};
 };
 
 
+struct Key
+{
+	double keyV[2];
+};
+
+
 typedef struct {
   int y;
   int x;
 } loc_t;
+
+
 
 
 struct vertex
@@ -120,8 +144,9 @@ struct vertex
 	 double h;
 	 double f;
 	 double key[2];
-	 vertex* move[DIRECTIONS]; 
+	 vertex* move[DIRECTIONS];
     double linkCost[DIRECTIONS];	
+	//Neighbours neighbourData;
 #endif	
 	
 	
@@ -145,13 +170,16 @@ struct vertex
 	 //--------------------------------------------------------------------------------- 
 	 //TYPE: 0 - traversable, 1 - blocked, 9 - unknown, 6 - start vertex, 7 - goal vertex
     char type; 
-	 //---------------------------------------------------------------------------------
-	 int row;
-	 int col;
-	 char status; 
-	 
-	 int x1,y1,x2,y2;
-	 Coordinates centre; //centre x, centre y
+	//---------------------------------------------------------------------------------
+	int row;
+	int col;
+	char status; 
+
+	int x;
+	int y;
+	
+	int x1,y1,x2,y2;
+	Coordinates centre; //centre x, centre y
 }; 
 
 extern int MAX_MOVES;
@@ -179,7 +207,7 @@ extern int cellHeight;
 //8-connected gridworld
 #define DIRECTIONS 8 //clockwise sequence of moves (8-connected gridworld)
 
-#define INF  1000000
+
 
 struct LpaStarCell
 {
