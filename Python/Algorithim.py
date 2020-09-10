@@ -287,7 +287,7 @@ class DStarLite:
                     for x in u.getNeighbours():
                         if x[0][2] < 99: #Changed to use cost vector
                             self.updateVertex(self.grid.map[x[1][0]][x[1][1]], u)
-                            self.updateVertex(u, u)
+                    self.updateVertex(u, u)
                 
                 print("End Step Q")
                 print(self.U)

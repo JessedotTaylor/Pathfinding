@@ -280,8 +280,8 @@ void GridWorld::initialiseMapConnections()
 						
 						//originVertex->linkCost[m] = INF;
 						
-						neighbourY = originVertex->row + neighbours[m].y;
-						neighbourX = originVertex->col + neighbours[m].x;
+						neighbourY = originVertex->row + neighbours[m].j;
+						neighbourX = originVertex->col + neighbours[m].i;
 						//for debugging only
 						//cout << "neighbour["<< m << "]: (neighbourX = " << neighbourX << ", neighbourY = " << neighbourY << ")" << endl;
 						if( (neighbourX >= 0) && (neighbourX < GRIDWORLD_COLS) && (neighbourY >= 0) && (neighbourY < GRIDWORLD_ROWS)){
@@ -291,10 +291,12 @@ void GridWorld::initialiseMapConnections()
 							   //map[j][i].move[m] = neighbour;
 								originVertex->move[m] = neighbour;
 								originVertex->linkCost[m] = 1.0;
+								originVertex->neighbourData.cost[m] = 1.0;
 							} else if(neighbour->type == '1'){
 								
 								originVertex->move[m] = neighbour; //THIS IS ONLY A TEST
 								originVertex->linkCost[m] = INF;
+								originVertex->neighbourData.cost[m] = INF;
 							}
 							
 						}
