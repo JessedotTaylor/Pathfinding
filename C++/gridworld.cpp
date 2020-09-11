@@ -87,6 +87,7 @@ void GridWorld::displayPath(vertex* startV, vertex* targV){
 			break;
 		}	
 		else {
+			if (pathLength < pathLength +1) {pathLength++;}
 			currentVertex = min_neighbour;
 		}
 		i++;

@@ -48,6 +48,7 @@ public:
 	//void displayPath(vertex* startV);
 	void displayPath(vertex* currentVertex, vertex* targV);
 	vertex * findMinNeighbour(vertex * currentVertex);
+	int pathLength = 0;
    //------------------------------------------------
 	void drawGrid();
 	

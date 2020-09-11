@@ -58,6 +58,7 @@ class DStarLite {
         int km;
 
         int lenU = 0;
+        int maxU = 0;
 
         Key tempKey;
 
@@ -67,6 +68,11 @@ class DStarLite {
 
         char alg = 'D';
         int searchState = 0;
+
+        int vRead = 0;
+        int vWrite = 0;
+
+
 };
 
 #endif

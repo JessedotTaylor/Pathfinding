@@ -138,6 +138,27 @@ struct vertex
 {
 	
 #ifdef INCREMENTAL_SEARCH_ALGORITHM	
+	double getRHS(void) {reads++; return rhs;}
+	void setRHS(double x) {writes++; rhs = x;}
+
+	double getG(void) {reads++; return g;}
+	void setG(double x) {writes++; g = x;}
+
+	double getH(void) {reads++; return h;}
+	void setH(double x) {writes++; h = x;}
+
+	double getKey(int val) {reads++; return key[val];}
+	void setKey(int val, double x) {writes++; key[val] = x;}
+
+	vertex * getMove(int val) {reads++; return move[val];}
+	void setMove(int val, vertex * x) {writes++; move[val] = x;}
+
+	double getLinkCost(int val) {reads++; return linkCost[val];}
+	void setLinkCost(int val, double x) {writes++; linkCost[val] = x;}
+
+
+
+
     double rhs;
     double g;
 	 int c;
@@ -171,15 +192,35 @@ struct vertex
 	 //TYPE: 0 - traversable, 1 - blocked, 9 - unknown, 6 - start vertex, 7 - goal vertex
     char type; 
 	//---------------------------------------------------------------------------------
+	char getType(void) {reads++; return type;}
+	void setType(char x) {writes++; type = x;}
+
 	int row;
 	int col;
-	char status; 
+
+	int getRow(void){reads++; return row;}
+	void setRow(int x){writes++; row = x;}
+
+	int getCol(void){reads++; return col;}
+	void setCol(int x){writes++; col = x;}
+
+	char status;
 
 	int x;
 	int y;
+
+	int getX(void){reads++; return x;}
+	void setX(int val){writes++; x = val;}
+
+	int getY(void){reads++; return y;}
+	void setY(int x){writes++; y = x;}
 	
 	int x1,y1,x2,y2;
 	Coordinates centre; //centre x, centre y
+
+	int reads = 0;
+	int writes = 0;
+
 }; 
 
 extern int MAX_MOVES;
