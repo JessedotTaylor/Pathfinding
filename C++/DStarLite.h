@@ -32,9 +32,7 @@ class DStarLite {
         Key calcKeys(int i, int j);
 
         double calc_H(int x, int y);
-
-        int minVal(int v1, int v2);
-        int maxValue(int v1, int v2);
+        double calc_H(int i1, int j1, int i2, int j2);
 
         bool lt(double key00, double key01, double key10, double key11);
         bool lt(Key k1, Key k2);

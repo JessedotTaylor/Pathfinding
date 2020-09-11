@@ -1,5 +1,5 @@
 Main.exe		: 	Main.o  transform.o DStarLite.o LPAstar.o gridworld.o graphics.o 
-	g++ -Wl,-s -o Main.exe Main.o transform.o DStarLite.o LPAstar.o gridworld.o graphics.o -l gdi32 
+	g++ -Wall -g -o Main.exe Main.o transform.o DStarLite.o LPAstar.o gridworld.o graphics.o -l gdi32 
 			
 Main.o		:	Main.cpp graphics.h transform.h DStarLite.h LPAstar.h gridworld.h globalvariables.h
 	g++ -c -std=c++11 -g  -fpermissive -fconserve-space -Wno-write-strings  Main.cpp

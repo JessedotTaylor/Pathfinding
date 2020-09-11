@@ -47,42 +47,29 @@ double sum(double a, double b){
 
 void GridWorld::displayPath(vertex* startV, vertex* targV){
 	//---
-	vertex * originVertex = startV;
-	vertex* neighbour; 
-	vertex* currentVertex;
+	//vertex * originVertex = startV;
+	//vertex* neighbour; 
+	vertex* currentVertex = startV;
 	vertex* min_neighbour;
 	
 
-	double min_g_plus_c = INF;
-	double linkCost, g;
-	double min_linkCost, min_g;
+	// double min_g_plus_c = INF;
+	// double linkCost, g;
+	// double min_linkCost, min_g;
 
 	int targI = targV->row;
 	int targJ = targV->col;
 
 	//---
 
-	currentVertex = originVertex;
+	//currentVertex = startV;
 	int i = 0;
 	int breakVal = 20;
 
 	while(i < breakVal){
-		min_g_plus_c = INF;
 
-		for(int m=0; m < DIRECTIONS; m++){
-			neighbour = currentVertex->move[m];
-			//cout << "(" << (char)((currentVertex->move[m]->row-1) + 'A') << " " << (currentVertex->move[m]->col-1) << ")\t";
-			if(neighbour != NULL && neighbour->type != '1'){
-				linkCost = currentVertex->linkCost[m];
-				g = neighbour->g;
-				if(min_g_plus_c > sum(g,linkCost)){
-					min_g_plus_c = sum(g,linkCost);
-					min_g=g;
-					min_linkCost = linkCost; 
-					min_neighbour = neighbour;
-				}              
-			}                   
-		}
+		min_neighbour = findMinNeighbour(currentVertex);
+
 		setcolor(RED);
 
 		setlinestyle(SOLID_LINE, 2, 2);
@@ -110,6 +97,31 @@ void GridWorld::displayPath(vertex* startV, vertex* targV){
 	}
 }
 //---
+
+vertex * GridWorld::findMinNeighbour(vertex * currentVertex) {
+	double min_g_plus_c = INF;
+	double linkCost, g;
+	double min_linkCost, min_g;
+	vertex * neighbour;
+	vertex * min_neighbour;
+	//cout << "(" << (char)((currentVertex->row-1) + 'A') << " " << (currentVertex->col-1) << ")\n";
+
+	for(int m=0; m < DIRECTIONS; m++){
+		neighbour = currentVertex->move[m];
+		if(neighbour != NULL && neighbour->type != '1'){
+			//cout << "(" << (char)((currentVertex->move[m]->row-1) + 'A') << " " << (currentVertex->move[m]->col-1) << ")\t";
+			linkCost = currentVertex->linkCost[m];
+			g = neighbour->g;
+			if(min_g_plus_c > sum(g,linkCost)){
+				min_g_plus_c = sum(g,linkCost);
+				min_g=g;
+				min_linkCost = linkCost; 
+				min_neighbour = neighbour;
+			}              
+		}                   
+	}
+	return min_neighbour;
+}
 
 void GridWorld::displayHeader(){
 		 int x,y;

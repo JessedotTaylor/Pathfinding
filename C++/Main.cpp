@@ -179,7 +179,7 @@ void copyDisplayMapToMaze(GridWorld &gWorld, LpaStar* LPA){
 ///////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
 ///////////////////////////////////////////////////////////////////////////////
- void updateMap(GridWorld &gWorld, LpaStar* LPA) {
+void updateMap(GridWorld &gWorld, LpaStar* LPA) {
 	for(int i=0; i < gWorld.getGridWorldRows(); i++){
 	   for(int j=0; j < gWorld.getGridWorldCols(); j++){
 		   switch (gWorld.map[i][j].type)
@@ -214,6 +214,53 @@ void copyDisplayMapToMaze(GridWorld &gWorld, LpaStar* LPA){
 	   }
 	}
  }
+
+bool updateMap(GridWorld &gWorld, DStarLite * DStar, int i, int j) {
+	vertex * neighbour;
+	bool changes = 0;
+	for (int m= 0; m < DIRECTIONS; m++) {
+		neighbour = DStar->maze[i][j].move[m];
+		if (neighbour != NULL) {
+			int mapI = neighbour->row;
+			int mapJ = neighbour->col;
+		
+			switch (neighbour->type)
+			{
+				case '8':
+				{
+					gWorld.map[mapI][mapJ].type = '0';
+					break;
+				}
+				case '9':
+				{
+					gWorld.map[mapI][mapJ].type= '1';
+					
+					neighbour->g = INF;
+					gWorld.map[mapI][mapJ].g = INF;
+					
+					neighbour->rhs = INF;
+					gWorld.map[mapI][mapJ].rhs = INF;
+
+					
+
+					for(int m=0; m < DIRECTIONS; m++) {
+						gWorld.map[mapI][mapJ].linkCost[m] = INF;
+						neighbour->linkCost[m] = INF;
+						if (neighbour->move[m]->type != '1'){
+							DStar->updateVertex(neighbour->move[m], neighbour);
+						}
+					}
+					changes = 1;
+				}
+				default:
+				{
+					break;
+				}
+			}
+		}
+	}
+	return changes;
+}
 
 
 
@@ -339,6 +386,11 @@ void runSimulation(char *fileName){
 	colSelected=-1;
 	
 	int mouseRadius=1;
+
+	vertex * currPos;
+	char oldType;
+	long startTime;
+	long endTime;
 		
 	srand(time(NULL));  // Seed the random number generator
 			
@@ -357,9 +409,12 @@ void runSimulation(char *fileName){
 	lpa_star = new LpaStar(grid_world.getGridWorldRows(), grid_world.getGridWorldCols());
 	
 	vertex start = grid_world.getStartVertex();
+	currPos = &(grid_world.map[start.row][start.col]);
+	oldType = '6';
 	vertex goal = grid_world.getGoalVertex();
 	
 	cout << "(start.col = " << start.col << ", start.row = " << start.row << ")" << endl;
+	//cout << "(currPos.col = " << currPos->col << ", currPos.row = " << currPos->row << ")" << endl;
 	cout << "(goal.col = " << goal.col << ", goal.row = " << goal.row << ")" << endl;
 	
 	//cout << "Start D* init\n";
@@ -420,13 +475,17 @@ void runSimulation(char *fileName){
 					break;
 				
 				case 106: 
-						break;
+					break;
 				
-				case 107: 
+				case 107: // F7
+				{
 					switch (lpa_star->searchState){
 						case 0:
-						{
+						{	
+							startTime = clock();
 							pathFound = lpa_star->computeShortestPath();
+							endTime = clock();
+							cout << "LPA* First Search Run time: " << (double)(endTime - startTime) / CLOCKS_PER_SEC * 1000 << "ms\n";
 							lpa_star->searchState = 1;
 							break;
 						}
@@ -434,7 +493,10 @@ void runSimulation(char *fileName){
 						{
 							updateMap(grid_world, lpa_star);
 							copyDisplayMapToMaze(grid_world, lpa_star);
+							startTime = clock();
 							pathFound = lpa_star->computeShortestPath();
+							endTime = clock();
+							cout << "LPA* Second Search Run time: " << (double)(endTime - startTime) / CLOCKS_PER_SEC * 1000 << "ms\n";
 							lpa_star->searchState = 2;
 							break;
 						}
@@ -451,16 +513,56 @@ void runSimulation(char *fileName){
 					
 					Sleep(200);
 					break;
+				}
 				
-				case 108: 
+				case 201: //Down Arrow
+				{
+					if (alg == 'D') {
+						bool changes = updateMap(grid_world, D_Star_Lite, currPos->row,  currPos->col);
+						if (changes) {
+							D_Star_Lite->km = D_Star_Lite->km + D_Star_Lite->calc_H(currPos->row, currPos->col);
+							D_Star_Lite->sLast = &(D_Star_Lite->maze[currPos->row][currPos->col]);
+							D_Star_Lite->updateHValues();
+
+							startTime = clock();
+							D_Star_Lite->computeShortestPath();
+							endTime = clock();
+							
+							cout << "D* Second Search Run time: " << (double)(endTime - startTime) / CLOCKS_PER_SEC * 1000 << "ms\n";
+						} 
+						if ((currPos->row != start.row) || (currPos->col != start.col)) {
+							grid_world.setMapTypeValue(currPos->row, currPos->col, oldType);
+						}
+						vertex * robV = grid_world.findMinNeighbour(currPos);
+						//cout << "\nrobV: (" << (char)((robV->row-1) + 'A') << " " << (robV->col-1) << ")\n";
+
+						oldType = grid_world.getMapTypeValue(robV->row, robV->col);
+						grid_world.setMapTypeValue(robV->row, robV->col, '6');
+
+						currPos = robV;			
+
+						copyDisplayMapToMaze(grid_world, D_Star_Lite);
+
+						Sleep(200);
+					}
+					break;
+				}
+				
+				case 108: //F8
+				{
 					//D_Star_Lite->computeShortestPathStep(10);
+					startTime = clock();
 					D_Star_Lite->computeShortestPath();
+					endTime = clock();
+					cout << "D* First Search Run time: " << (double)(endTime - startTime) / CLOCKS_PER_SEC * 1000 << "ms\n";
 					///cout << "Compute Done\n";
 					copyMazeToDisplayMap(grid_world, D_Star_Lite);
 					cout << "copied D_Star_Lite's 'maze' to display 'map'" << endl;
 					alg = D_Star_Lite->alg;
+					lpa_star->searchState = 0;
 					Sleep(200);
 					break;
+				}
 				
 				case 15:
 				{
@@ -575,12 +677,8 @@ void runSimulation(char *fileName){
 					break;
 				}	
 				
-				case 110:	
+				case 110:	//Copy 'Maze' to 'map'
 				{				
-					//D_Star_Lite->updateHValues();
-					//cout << "Copy out start\n";
-
-					//----------------------- Add handling for multiple algorithims
 					if (alg == 'D') { //Last used algorithim D*
 						copyMazeToDisplayMap(grid_world, D_Star_Lite);
 						cout << "copied D_Star_Lite's maze to display map" << endl;
@@ -593,9 +691,10 @@ void runSimulation(char *fileName){
 					}
 					
 					action = -1;					
-					Sleep(200);
+					//Sleep(200);
 					break;
 				}
+				
 				case 9: //display g-values only
 					grid_world.displayMapWithSelectedDetails(true, false, false, false);  //(bool display_g, bool display_rhs, bool display_h, bool display_key) 
 					action = -1;
@@ -612,7 +711,7 @@ void runSimulation(char *fileName){
 					break;
 				
 				case 12: //make cell Traversable
-			 
+			 	{
 					 if( rowSelected != -1 && colSelected != -1){
 						 grid_world.setMapTypeValue(rowSelected-1, colSelected-1, '0');
 						 
@@ -621,7 +720,8 @@ void runSimulation(char *fileName){
 					 }
 					 action = -1;
 					 break; 
-					 
+				 }	 
+				
 				case 14: 
 					   grid_world.displayMapWithPositionDetails();
 						action = -1;

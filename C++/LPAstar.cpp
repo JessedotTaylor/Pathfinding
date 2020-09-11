@@ -72,6 +72,7 @@ void LpaStar::initialise(int _startJ, int _startI, int _goalJ, int _goalI){
 bool LpaStar::computeShortestPath(void) {
 	while ((lt(topKey(), calcKey(goalI, goalJ)) || (maze[goalI][goalJ].rhs != maze[goalI][goalJ].g))){
 		vertex * u = pop();
+        u->status = '2';
 
 		if (u->g > u->rhs) {
 			u->g = u->rhs;
@@ -99,6 +100,7 @@ bool LpaStar::computeShortestPathStep(int steps) {
 	for (int z = 1; z < steps; z++) {
 		if (lt(topKey(), calcKey(goalI, goalJ)) || (maze[goalI][goalJ].rhs != maze[goalI][goalJ].g)){
 			vertex * u = pop();
+            u->status = '2';
 
 			cout << "\nStep: " << z << '\n';
             //cout << "D-Q: ("<< u->row <<", " << u->col << ")\n";
@@ -142,6 +144,8 @@ bool LpaStar::computeShortestPathStep(int steps) {
 void LpaStar::updateVertex(vertex * u, vertex * uPrime) {
     bool debug =false;
     if (debug) {cout << "updateVertex: (" << (char)((u->row-1) + 'A') << " " << (u->col-1) << ")\t";}
+
+    if (u->status == '0') {u->status = '1';}
     
 	if ((u->row != startI)|| (u->col != startJ)) {
 		if (debug) {cout << "Entered cost eval\t";}
