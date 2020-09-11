@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <algorithm>    
 #include <math.h>
+#include <cmath>
 #include <iostream>
 #include <stdlib.h>     /* calloc, exit, free */
 
@@ -43,6 +44,10 @@ void DStarLite::initialise(int _startJ, int _startI, int _goalJ, int _goalI) {
     goalI = _goalI;
     goalJ = _goalJ;
 
+    sLast = &(maze[startI][startJ]);
+    start = &(maze[startI][startJ]);
+    goal = &(maze[goalI][goalJ]);
+
     //cout << "Start Maze\n";
     for(int i=0; i < rows; i++){
         for(int j=0; j < cols; j++){
@@ -57,10 +62,6 @@ void DStarLite::initialise(int _startJ, int _startI, int _goalJ, int _goalI) {
     }
     //cout << "End Maze\n";
 
-
-    sLast = &(maze[startI][startJ]);
-    start = &(maze[startI][startJ]);
-    goal = &(maze[goalI][goalJ]);
 
     maze[goalI][goalJ].rhs = 0;
     goal->key[0] = maze[goalI][goalJ].h;
@@ -79,6 +80,7 @@ bool DStarLite::computeShortestPath(void) {
 
         vertex *v = pop();
         vertex * u = &maze[v->row][v->col];
+        u->status = '2';
         
         // cout << "\nStep: " << z << '\n';
         // //cout << "D-Q: ("<< u->row <<", " << u->col << ")\n";
@@ -117,6 +119,7 @@ bool DStarLite::computeShortestPathStep(int steps) {
 
             vertex *v = pop();
             vertex * u = &maze[v->row][v->col];
+            u->status = '2';
             
             cout << "\nStep: " << z << '\n';
             //cout << "D-Q: ("<< u->row <<", " << u->col << ")\n";
@@ -176,6 +179,7 @@ void DStarLite::updateVertex(vertex * u, vertex * uPrime) {
     bool debug =false;
     if (debug) {cout << "updateVertex: (" << (char)((u->row-1) + 'A') << " " << (u->col-1) << ")\t";}
     
+    if (u->status == '0') {u->status = '1';}
     
     //") GoalI: " << goalI << " GoalJ: " << goalJ;
     //cout << u->row << u->col << '\n';
@@ -260,7 +264,6 @@ void DStarLite::insert(vertex *v, Key inpKey) {
     insert(v, key0, key1);
 }
 
-
 Key DStarLite::topKey(void) {
     if (lenU > 0) {
         tempKey.keyV[0] = U[0]->key[0];
@@ -271,7 +274,8 @@ Key DStarLite::topKey(void) {
 
 Key DStarLite::calcKeys(vertex * v) {
     //cout << v->g <<  v->rhs << v->h << '\n';
-    double key2 = minVal(v->g, v->rhs);
+   
+    double key2 = min(v->g, v->rhs);;
     double key1 = key2 + v->h + km;
     v->key[0] = key1;
     tempKey.keyV[0] = key1;
@@ -287,28 +291,17 @@ Key DStarLite::calcKeys(int i, int j) {
 }
 
 double DStarLite::calc_H(int _i, int _j){
-	
-	int diffY = abs(startJ - _j);
-	int diffX = abs(startI - _i);
-	
-	//maze[y][x].h = (double)maxValue(diffY, diffX);
-	return (double)maxValue(diffY, diffX);
-}
+	if (HEURISTIC == 1) {
+        int diffY = abs(sLast->row - _j);
+        int diffX = abs(sLast->col - _i);
+        
+        return (double)max(diffX, diffY);;
+    } else if (HEURISTIC == 2) {
+        int diffX = pow((sLast->col - _i), 2);
+        int diffY = pow((sLast->row - _j), 2);
 
-int DStarLite::minVal(int v1, int v2){
-    if(v1 <= v2){
-		return v1;
-	} else {
-		return v2;
-	}
-}
-
-int DStarLite::maxValue(int v1, int v2){	
-	if(v1 >= v2){
-		return v1;
-	} else {
-		return v2;
-	}	
+        return (double)sqrt(diffX + diffY);
+    }
 }
 
 bool DStarLite::lt(double key00, double key01, double key10, double key11) {
@@ -333,5 +326,11 @@ bool DStarLite::lt(Key k1, Key k2) {
 }
 
 
-void DStarLite::updateHValues(void){return;}
+void DStarLite::updateHValues(void){
+    for(int i=0; i < rows; i++){
+        for(int j=0; j < cols; j++){
+            maze[i][j].h = calc_H(i, j);
+        }
+    }
+}
 void DStarLite::updateAllKeyValues(void){return;}

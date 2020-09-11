@@ -45,8 +45,9 @@ public:
 	
 	void displayVertexConnections(int i, int j) ;
 	void displayMapConnections();
-	void displayPath(vertex* startV);
-	void displayPath(vertex* currentVertex, vertex* min_neighbour);
+	//void displayPath(vertex* startV);
+	void displayPath(vertex* currentVertex, vertex* targV);
+	vertex * findMinNeighbour(vertex * currentVertex);
    //------------------------------------------------
 	void drawGrid();
 	
@@ -191,6 +192,10 @@ public:
 	friend void copyDisplayMapToMaze(GridWorld &gWorld, LpaStar* lpa);
 	friend void copyMazeToDisplayMap(GridWorld &gWorld, DStarLite* DStar);
     friend void copyDisplayMapToMaze(GridWorld &gWorld, DStarLite* DStar);
+	friend void updateMap(GridWorld &gWorld, LpaStar* LPA);
+	friend bool updateMap(GridWorld &gWorld, DStarLite * DStar, int i, int j);
+
+	vector<vector<vertex> > map;
 	
 private:
 	int cellWidth;
@@ -205,7 +210,7 @@ private:
    float WORLD_MAXX;
    float WORLD_MAXY;
    int fieldX1, fieldY1, fieldX2, fieldY2;
-	vector<vector<vertex> > map;
+	
 
 	vertex startVertex;
 	vertex goalVertex;

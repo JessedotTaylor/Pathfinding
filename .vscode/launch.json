@@ -5,17 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "g++.exe - Build and debug active file",
+            "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
-            "args": [],
+            "program": "${workspaceFolder}\\C++\\Main.exe",
+            "args": [
+                "${workspaceFolder}/C++/grids/grid_lpa_journal.map",
+                "m"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "C:\\gcc92\\MinGW\\bin\\gdb.exe",
+            //"miDebuggerPath": "/path/to/gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -23,7 +26,7 @@
                     "ignoreFailures": true
                 }
             ],
-            //"preLaunchTask": "C/C++: g++.exe build active file"
+            "preLaunchTask" : "Build"
         }
     ]
 }

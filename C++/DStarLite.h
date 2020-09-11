@@ -21,19 +21,18 @@ class DStarLite {
         bool computeShortestPathStep(int steps);
         void updateVertex(vertex * u, vertex * uPrime);
 
-        void remove(vertex * v);
+        void remove(vertex * v); // Could be updated to take int val
         bool inQueue(vertex * v);
         vertex * pop(void);
         void insert(vertex *v, double key0, double key1);
         void insert(vertex *v, Key inpKey);
         Key topKey(void);
+
         Key calcKeys(vertex * v);
         Key calcKeys(int i, int j);
 
         double calc_H(int x, int y);
-
-        int minVal(int v1, int v2);
-        int maxValue(int v1, int v2);
+        double calc_H(int i1, int j1, int i2, int j2);
 
         bool lt(double key00, double key01, double key10, double key11);
         bool lt(Key k1, Key k2);
@@ -65,6 +64,9 @@ class DStarLite {
         vertex *sLast;
         vertex *start;
         vertex *goal;
+
+        char alg = 'D';
+        int searchState = 0;
 };
 
 #endif

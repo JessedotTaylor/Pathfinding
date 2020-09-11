@@ -8,68 +8,68 @@ double sum(double a, double b){
 			return (a+b);
 		}
     }
-void GridWorld::displayPath(vertex* startV) {
-	vertex * originVertex = startV;
-	//cout << "currentVertex: (" << (char)((currentVertex->row-1) + 'A') << " " << (currentVertex->col-1) << ")\n";
-	vertex * neighbour;
-	vertex * min_neighbour;
-	double min_g_plus_c = INF;
-	double linkCost, g;
-	double min_linkCost, min_g;
+// void GridWorld::displayPath(vertex* startV, char alg) {
+// 	vertex * originVertex = startV;
+// 	//cout << "currentVertex: (" << (char)((currentVertex->row-1) + 'A') << " " << (currentVertex->col-1) << ")\n";
+// 	vertex * neighbour;
+// 	vertex * min_neighbour;
+// 	double min_g_plus_c = INF;
+// 	double linkCost, g;
+// 	double min_linkCost, min_g;
+// 	for(int m=0; m < DIRECTIONS; m++){
+// 			neighbour = originVertex->move[m];
+// 			if(neighbour != NULL && neighbour->type != '1'){
+// 				linkCost = originVertex->linkCost[m];
+// 				g = (originVertex->move[m])->g;
+// 				if(min_g_plus_c > sum(g,linkCost)){
+// 					min_g_plus_c = sum(g,linkCost);
+// 					min_g=g;
+// 					min_linkCost = linkCost; 
+// 					min_neighbour = neighbour;
+// 				}              
+// 			}                   
+// 		}
 
-	for(int m=0; m < DIRECTIONS; m++){
-		neighbour = originVertex->move[m];
-		if(neighbour != NULL && neighbour->type != '1'){
-			linkCost = originVertex->linkCost[m];
-			g = (originVertex->move[m])->g;
-			if(min_g_plus_c > sum(g,linkCost)){
-				min_g_plus_c = sum(g,linkCost);
-				min_g=g;
-				min_linkCost = linkCost; 
-				min_neighbour = neighbour;
-			}              
-		}                   
-	}
+// 	if (alg == 'D') {
+// 		int targI = map[]
+		
+// 	} else if (alg == 'L') {
 
-	//cout << "originVertex: (" << (char)((originVertex->row-1) + 'A') << " " << (originVertex->col-1) << ")\n";
-	//cout << "min_neighbour: (" << (char)((min_neighbour->row-1) + 'A') << " " << (min_neighbour->col-1) << ")\n";
+// 	}
 
-	displayPath(originVertex, min_neighbour);
-}
+// 	//cout << "originVertex: (" << (char)((originVertex->row-1) + 'A') << " " << (originVertex->col-1) << ")\n";
+// 	//cout << "min_neighbour: (" << (char)((min_neighbour->row-1) + 'A') << " " << (min_neighbour->col-1) << ")\n";
+
+// 	displayPath(originVertex, min_neighbour);
+// }
 
 //---
-void GridWorld::displayPath(vertex* originVertex, vertex* min_neighbour){
+
+void GridWorld::displayPath(vertex* startV, vertex* targV){
 	//---
-	vertex* neighbour; 
-	vertex* currentVertex;
+	//vertex * originVertex = startV;
+	//vertex* neighbour; 
+	vertex* currentVertex = startV;
+	vertex* min_neighbour;
 	
 
-	double min_g_plus_c = INF;
-	double linkCost, g;
-	double min_linkCost, min_g;
+	// double min_g_plus_c = INF;
+	// double linkCost, g;
+	// double min_linkCost, min_g;
+
+	int targI = targV->row;
+	int targJ = targV->col;
+
 	//---
 
-	currentVertex = originVertex;
-	int i =0;
-	int breakVal = 10;
+	//currentVertex = startV;
+	int i = 0;
+	int breakVal = 20;
 
 	while(i < breakVal){
-		min_g_plus_c = INF;
 
-		for(int m=0; m < DIRECTIONS; m++){
-			neighbour = currentVertex->move[m];
-			//cout << "(" << (char)((currentVertex->move[m]->row-1) + 'A') << " " << (currentVertex->move[m]->col-1) << ")\t";
-			if(neighbour != NULL && neighbour->type != '1'){
-				linkCost = currentVertex->linkCost[m];
-				g = neighbour->g;
-				if(min_g_plus_c > sum(g,linkCost)){
-					min_g_plus_c = sum(g,linkCost);
-					min_g=g;
-					min_linkCost = linkCost; 
-					min_neighbour = neighbour;
-				}              
-			}                   
-		}
+		min_neighbour = findMinNeighbour(currentVertex);
+
 		setcolor(RED);
 
 		setlinestyle(SOLID_LINE, 2, 2);
@@ -81,7 +81,9 @@ void GridWorld::displayPath(vertex* originVertex, vertex* min_neighbour){
 		// cout << "(" << map[min_neighbour->row][min_neighbour->col].centre.x << ", " << map[min_neighbour->row][min_neighbour->col].centre.y << ") (" << map[currentVertex->row][currentVertex->col].centre.x << ", " << map[currentVertex->row][currentVertex->col].centre.y << ")\n";
 		line(map[min_neighbour->row][min_neighbour->col].centre.x, map[min_neighbour->row][min_neighbour->col].centre.y, map[currentVertex->row][currentVertex->col].centre.x, map[currentVertex->row][currentVertex->col].centre.y);
 
-		if((min_neighbour->row == map[goalVertex.row][goalVertex.col].row) && (min_neighbour->col == map[goalVertex.row][goalVertex.col].col)){
+		setlinestyle(SOLID_LINE, 1, 1);
+		
+		if((min_neighbour->row == map[targI][targJ].row) && (min_neighbour->col == map[targI][targJ].col)){
 			break;
 		}	
 		else {
@@ -95,6 +97,31 @@ void GridWorld::displayPath(vertex* originVertex, vertex* min_neighbour){
 	}
 }
 //---
+
+vertex * GridWorld::findMinNeighbour(vertex * currentVertex) {
+	double min_g_plus_c = INF;
+	double linkCost, g;
+	double min_linkCost, min_g;
+	vertex * neighbour;
+	vertex * min_neighbour;
+	//cout << "(" << (char)((currentVertex->row-1) + 'A') << " " << (currentVertex->col-1) << ")\n";
+
+	for(int m=0; m < DIRECTIONS; m++){
+		neighbour = currentVertex->move[m];
+		if(neighbour != NULL && neighbour->type != '1'){
+			//cout << "(" << (char)((currentVertex->move[m]->row-1) + 'A') << " " << (currentVertex->move[m]->col-1) << ")\t";
+			linkCost = currentVertex->linkCost[m];
+			g = neighbour->g;
+			if(min_g_plus_c > sum(g,linkCost)){
+				min_g_plus_c = sum(g,linkCost);
+				min_g=g;
+				min_linkCost = linkCost; 
+				min_neighbour = neighbour;
+			}              
+		}                   
+	}
+	return min_neighbour;
+}
 
 void GridWorld::displayHeader(){
 		 int x,y;
@@ -131,6 +158,7 @@ void GridWorld::displayHeader(){
    	 //outtextxy(x ,y, "fileName: ");
 	    outtextxy(x ,y, info);
 }
+
 void GridWorld::displayRLHeader(long maxEpoch){
 		 int x,y;
 		 x = getmaxx() /2;
@@ -311,7 +339,7 @@ void GridWorld::initialiseMapConnections()
 							if(neighbour->type != '1'){ //if the neighbour is not BLOCKED, then it is reacheable
 							   //map[j][i].move[m] = neighbour;
 								originVertex->move[m] = neighbour;
-								originVertex->linkCost[m] = 1.0;
+								originVertex->linkCost[m] = neighbours[m].cost;
 								//originVertex->neighbourData.cost[m] = 1.0;
 							} else if(neighbour->type == '1'){
 								
@@ -380,172 +408,34 @@ void GridWorld::displayVertexConnections(int i, int j)
 		//---------------------------------------		
 		
 		cout << "vertex(x = " << i << ", y= " << j << ")\n";
-			//for(int j =0; j < GRIDWORLD_ROWS; j++) //row
-			//{
+
+		if(map[i][j].type != '1'){
+
+			originVertex = &map[i][j];
+			for(int m=0; m < DIRECTIONS; m++){
+				neighbour = map[i][j].move[m];
+				if(neighbour != NULL && neighbour->type != '1'){
+					cout << "cost[" << m << "] = " << originVertex->linkCost[m] << endl; 
+					//setcolor(RED);
+					setcolor(YELLOW);
+					setlinestyle(WIDE_DOT_FILL, 2, 2);
+					line(neighbour->centre.x, neighbour->centre.y, originVertex->centre.x, originVertex->centre.y);	
+				}  else if(neighbour->type == '1'){
+					setcolor(RED);
+					setlinestyle(WIDE_DOT_FILL, 2, 2);
+					line(neighbour->centre.x, neighbour->centre.y, originVertex->centre.x, originVertex->centre.y);	
+					cout << "cost[" << m << "] = " << originVertex->linkCost[m] << endl; //<< "blocked cell" << endl; 
+					
+				}
 				
-				//for(int i =0;i < GRIDWORLD_COLS; i++) //col
-				//{
-		
-		         //If the cell is not a BLOCKED CELL
-		         if(map[i][j].type != '1'){
-		
-						originVertex = &map[i][j];
-						for(int m=0; m < DIRECTIONS; m++){
-							neighbour = map[i][j].move[m];
-							if(neighbour != NULL && neighbour->type != '1'){
-								cout << "cost[" << m << "] = " << originVertex->linkCost[m] << endl; 
-								//setcolor(RED);
-								setcolor(YELLOW);
-								setlinestyle(WIDE_DOT_FILL, 2, 2);
-							   	line(neighbour->centre.x, neighbour->centre.y, originVertex->centre.x, originVertex->centre.y);	
-							}  else if(neighbour->type == '1'){
-								setcolor(RED);
-								setlinestyle(WIDE_DOT_FILL, 2, 2);
-							   	line(neighbour->centre.x, neighbour->centre.y, originVertex->centre.x, originVertex->centre.y);	
-								cout << "cost[" << m << "] = " << originVertex->linkCost[m] << endl; //<< "blocked cell" << endl; 
-								
-							}
-							
-						}
-				   } 
-					
-					
-					//~ if(map[j][i].type == '0') //traversable cell
-					//~ {						
-						//~ //markCell_col_row(i,j, LIGHTGRAY, WHITE);
-						
-					//~ }
-					
-					//~ if(map[j][i].type == '1') //'B' - blocked cell
-					//~ {
-						//~ //markCell_col_row(i,j, BLACK, WHITE);
-						
-					//~ }
-					//~ if(map[j][i].type == '9') //unknown
-					//~ {
-						//~ //markCell_col_row(i,j, DARKGRAY, WHITE);
-						
-					//~ }
-					//~ if(map[j][i].type == '6') //'S' - start vertex
-					//~ {
-						//~ startVertex.row = j;
-						//~ startVertex.col = i;
-						//~ //markCell_col_row(i,j, GREEN, WHITE);
-						
-					//~ }
-					//~ if(map[j][i].type == '7') //'G' - goal vertex
-					//~ {
-						//~ goalVertex.row = j;
-						//~ goalVertex.col = i;
-						//~ //markCell_col_row(i,j, BLUE, WHITE);
-						
-					//~ }
-					
-				//} //for next Cols
-			//} //for next Rows
-			
+			}
+		} 
 			setlinestyle(SOLID_LINE, 1, 1);
-		
 	}
    catch (std::ifstream::failure e) {
     std::cerr << "Exception dispaying Map\n";
    }
-  
- 
-  
 }
-
-
-
-//output: display entire map connections
-//~ void GridWorld::displayRLShortestPath(bool display_reward, bool display_maxQ) 
-//~ {
-	//~ if(shortestPath.size() <= 0){
-		//~ cout << "calculate shortest path first." << endl;
-		
-	//~ }
-	
-	//~ vertex* from;
-	//~ vertex* to;
-		
-	//~ loc_t wayPoint;
-	
-	//~ try{
-		//~ //---------------------------------------
-		 //~ //displayHeader();
-		//~ //---------------------------------------		
-		   //~ for(int j =0; j < GRIDWORLD_ROWS; j++) //row
-			//~ {
-				
-				//~ for(int i =0;i < GRIDWORLD_COLS; i++) //col
-				//~ {
-					
-					//~ if(map[j][i].type == '0') //traversable cell
-					//~ {						
-						//~ markCell_col_row_RL_details(i,j, LIGHTGRAY, WHITE, display_reward, display_maxQ);
-					//~ }
-					
-					//~ if(map[j][i].type == '1') //'B' - blocked cell
-					//~ {
-						//~ markCell_col_row_RL_details(i,j, BLACK, WHITE, display_reward, display_maxQ);
-						
-					//~ }
-					//~ if(map[j][i].type == '9') //unknown
-					//~ {
-						//~ markCell_col_row_RL_details(i,j, DARKGRAY, WHITE, display_reward, display_maxQ);
-						
-					//~ }
-					//~ if(map[j][i].type == '6') //'S' - start vertex
-					//~ {
-						//~ startVertex.row = j;
-						//~ startVertex.col = i;
-						//~ markCell_col_row_RL_details(i,j, GREEN, WHITE, display_reward, display_maxQ);
-						
-					//~ }
-					//~ if(map[j][i].type == '7') //'G' - goal vertex
-					//~ {
-						//~ goalVertex.row = j;
-						//~ goalVertex.col = i;
-						//~ markCell_col_row_RL_details(i,j, BLUE, WHITE, display_reward, display_maxQ);
-						
-					//~ }
-					//~ if(map[j][i].type == '4') //sub GOAL
-					//~ {
-						//~ goalVertex.row = j;
-						//~ goalVertex.col = i;
-						//~ markCell_col_row_RL_details(i,j, CYAN, WHITE, display_reward, display_maxQ);
-						
-					//~ }
-					
-				//~ }
-			//~ }
-		
-		
-		//~ //---------------------------------------
-		//~ wayPoint = shortestPath[0];
-		//~ from = &map[wayPoint.y][wayPoint.x];
-		//~ for(int i=0; i < shortestPath.size(); i++){
-			//~ wayPoint = shortestPath[i];
-			
-			//~ to = &map[wayPoint.y][wayPoint.x];
-			
-			//~ setcolor(RED);
-			//~ setlinestyle(WIDE_DOT_FILL, 2, 2);
-			//~ line(from->centre.x, from->centre.y, to->centre.x, to->centre.y);	
-			
-			//~ from = to;
-
-		//~ }
-					
-	//~ }
-   //~ catch (std::ifstream::failure e) {
-    //~ std::cerr << "Exception dispaying Map\n";
-   //~ }
-  
- 
-  
-//~ }
-
 
 //output: display entire map connections
 void GridWorld::displayMapConnections() 
@@ -635,7 +525,6 @@ void GridWorld::displayMapConnections()
   
 }
 
-
 void GridWorld::displayMap() 
 {
 	int cellX, cellY;
@@ -700,9 +589,6 @@ void GridWorld::displayMap()
    catch (std::ifstream::failure e) {
     std::cerr << "Exception dispaying Map\n";
    }
-  
- 
-  
 }
 
 void GridWorld::displayMapWithPositionDetails() 
@@ -825,69 +711,6 @@ void GridWorld::displayMapWithDetails()
    }
 }
 
-
-//~ void GridWorld::displayMapWithRLDetails(bool display_reward, bool display_maxQ, long maxEpoch) 
-//~ {
-	//~ int cellX, cellY;
-	
-		
-	//~ try{
-		//~ //---------------------------------------
-		 //~ //displayHeader();
-		 //~ displayRLHeader(maxEpoch);
-		//~ //---------------------------------------		
-			//~ for(int j =0; j < GRIDWORLD_ROWS; j++) //row
-			//~ {
-				
-				//~ for(int i =0;i < GRIDWORLD_COLS; i++) //col
-				//~ {
-					
-					//~ if(map[j][i].type == '0') //traversable cell
-					//~ {						
-						//~ markCell_col_row_RL_details(i,j, LIGHTGRAY, WHITE, display_reward, display_maxQ);
-					//~ }
-					
-					//~ if(map[j][i].type == '1') //'B' - blocked cell
-					//~ {
-						//~ markCell_col_row_RL_details(i,j, BLACK, WHITE, display_reward, display_maxQ);
-						
-					//~ }
-					//~ if(map[j][i].type == '9') //unknown
-					//~ {
-						//~ markCell_col_row_RL_details(i,j, DARKGRAY, WHITE, display_reward, display_maxQ);
-						
-					//~ }
-					//~ if(map[j][i].type == '6') //'S' - start vertex
-					//~ {
-						//~ startVertex.row = j;
-						//~ startVertex.col = i;
-						//~ markCell_col_row_RL_details(i,j, GREEN, WHITE, display_reward, display_maxQ);
-						
-					//~ }
-					//~ if(map[j][i].type == '7') //'G' - goal vertex
-					//~ {
-						//~ goalVertex.row = j;
-						//~ goalVertex.col = i;
-						//~ markCell_col_row_RL_details(i,j, BLUE, WHITE, display_reward, display_maxQ);
-						
-					//~ }
-					//~ if(map[j][i].type == '4') //sub GOAL
-					//~ {
-						//~ goalVertex.row = j;
-						//~ goalVertex.col = i;
-						//~ markCell_col_row_RL_details(i,j, CYAN, WHITE, display_reward, display_maxQ);
-						
-					//~ }
-					
-				//~ }
-			//~ }
-		
-	//~ }
-   //~ catch (std::ifstream::failure e) {
-    //~ std::cerr << "Exception dispaying Map\n";
-   //~ }
-//~ }
-
 void GridWorld::displayMapWithKeyDetails() 
 {
 	int cellX, cellY;
@@ -942,7 +765,6 @@ void GridWorld::displayMapWithKeyDetails()
    }
 }
 
-
 void GridWorld::displayMapWithSelectedDetails(bool display_g, bool display_rhs, bool display_h, bool display_key) 
 {
 	int cellX, cellY;
@@ -994,8 +816,6 @@ void GridWorld::displayMapWithSelectedDetails(bool display_g, bool display_rhs, 
     std::cerr << "Exception dispaying Map\n";
    }
 }
-
-
 
 void GridWorld::initSystemOfCoordinates(){
    
@@ -1325,7 +1145,6 @@ void GridWorld::markCell_col_row_RL_details(int col, int row, int fillColour, in
 	
 }
 
-
 void GridWorld::markCell_col_row_details_xy(int col, int row, int fillColour, int outlineColour){
 	
 	int cellX, cellY;
@@ -1395,7 +1214,6 @@ void GridWorld::markCell_col_row_details_xy(int col, int row, int fillColour, in
 	setbkcolor(fillColour);
 	outtextxy(x ,y, info);
 }
-
 
 void GridWorld::markCell_col_row_details(int col, int row, int fillColour, int outlineColour){
 	

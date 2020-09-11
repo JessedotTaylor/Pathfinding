@@ -27,7 +27,7 @@ class LPAStar:
             x1 = self.grid.map[x1][x2]  #set x1 to vector, like default behaviour
 
         k2 = min(x1.getG(), x1.getRHS())
-        k1 = k2 + x1.getH() + self.km
+        k1 = k2 + x1.getH()
         x1.setKey([k1, k2])
         return [k1, k2]
 
@@ -86,7 +86,7 @@ class LPAStar:
                             # print("update vertex: ")
                             # print(self.grid.map[x[1][0]][x[1][1]])
                             self.updateVertex(self.grid.map[x[1][0]][x[1][1]], u)
-                            self.updateVertex(u, u)
+                    self.updateVertex(u, u)
 
                 print("End Step Q")
                 print(self.U)

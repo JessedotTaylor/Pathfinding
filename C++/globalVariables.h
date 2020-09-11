@@ -46,17 +46,17 @@ const double SQRT_2 =  1.4142135623731;
 
 	//8-connected gridworld
 	#define DIRECTIONS 8
-	//#define CORNER_COST SQRT_2
-	#define CORNER_COST 1
+	#define CORNER_COST SQRT_2
+	//#define CORNER_COST 1
 	
 	//movement sequence, used in the journal
 	const struct {
 	  int i;
 	  int j;
 	  double cost;
-	} neighbours[8]={ {-1,-1, CORNER_COST}, {0, -1, CORNER_COST}, {1, -1, CORNER_COST}, 
-					{-1, 0, CORNER_COST}, {1, 0, CORNER_COST}, 
-					{-1, 1, CORNER_COST}, {0, 1, CORNER_COST}, {1, 1, CORNER_COST} };
+	} neighbours[8]={ {-1,-1, CORNER_COST}, {0, -1, 1}, {1, -1, CORNER_COST}, 
+					{-1, 0, 1}, {1, 0, 1}, 
+					{-1, 1, CORNER_COST}, {0, 1, 1}, {1, 1, CORNER_COST} };
 			
 	//clockwise, starting at 3 o'clock			
 	//~ const struct {
