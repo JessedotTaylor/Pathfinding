@@ -47,6 +47,10 @@ double sum(double a, double b){
 
 void GridWorld::displayPath(vertex* startV, vertex* targV){
 	//---
+	if (startV->g == INF) {
+		cout << "No Path Exists!\n";
+		return;
+	}
 	//vertex * originVertex = startV;
 	//vertex* neighbour; 
 	vertex* currentVertex = startV;
@@ -57,14 +61,12 @@ void GridWorld::displayPath(vertex* startV, vertex* targV){
 	// double linkCost, g;
 	// double min_linkCost, min_g;
 
-	int targI = targV->row;
-	int targJ = targV->col;
-
 	//---
+	pathLength = 0;
 
 	//currentVertex = startV;
 	int i = 0;
-	int breakVal = 20;
+	double breakVal = 1000;
 
 	while(i < breakVal){
 
@@ -74,24 +76,20 @@ void GridWorld::displayPath(vertex* startV, vertex* targV){
 
 		setlinestyle(SOLID_LINE, 2, 2);
 
-		// cout << "\noriginVertex: (" << (char)((originVertex->row-1) + 'A') << " " << (originVertex->col-1) << ")\n";
-		// cout << "currentVertex: (" << (char)((currentVertex->row-1) + 'A') << " " << (currentVertex->col-1) << ")\n";
-		// cout << "min_neighbour: (" << (char)((min_neighbour->row-1) + 'A') << " " << (min_neighbour->col-1) << ")\n\n";
-
-		// cout << "(" << map[min_neighbour->row][min_neighbour->col].centre.x << ", " << map[min_neighbour->row][min_neighbour->col].centre.y << ") (" << map[currentVertex->row][currentVertex->col].centre.x << ", " << map[currentVertex->row][currentVertex->col].centre.y << ")\n";
-		line(map[min_neighbour->row][min_neighbour->col].centre.x, map[min_neighbour->row][min_neighbour->col].centre.y, map[currentVertex->row][currentVertex->col].centre.x, map[currentVertex->row][currentVertex->col].centre.y);
+		line(min_neighbour->centre.x, min_neighbour->centre.y, currentVertex->centre.x, currentVertex->centre.y);
 
 		setlinestyle(SOLID_LINE, 1, 1);
-		
-		if((min_neighbour->row == map[targI][targJ].row) && (min_neighbour->col == map[targI][targJ].col)){
-			break;
+
+		if(min_neighbour == targV){	
+			return;
 		}	
 		else {
+			if (pathLength < pathLength +1) {pathLength++;}
 			currentVertex = min_neighbour;
 		}
 		i++;
 	}
-	if (i > breakVal) {
+	if (i > breakVal-1) {
 		cout << "Loop Force Broken (i > "<< breakVal << ")\n";
 		return;
 	}
@@ -102,6 +100,7 @@ vertex * GridWorld::findMinNeighbour(vertex * currentVertex) {
 	double min_g_plus_c = INF;
 	double linkCost, g;
 	double min_linkCost, min_g;
+	int maxM = 0;
 	vertex * neighbour;
 	vertex * min_neighbour;
 	//cout << "(" << (char)((currentVertex->row-1) + 'A') << " " << (currentVertex->col-1) << ")\n";
@@ -112,11 +111,12 @@ vertex * GridWorld::findMinNeighbour(vertex * currentVertex) {
 			//cout << "(" << (char)((currentVertex->move[m]->row-1) + 'A') << " " << (currentVertex->move[m]->col-1) << ")\t";
 			linkCost = currentVertex->linkCost[m];
 			g = neighbour->g;
-			if(min_g_plus_c > sum(g,linkCost)){
+			if((min_g_plus_c > sum(g,linkCost))) {
 				min_g_plus_c = sum(g,linkCost);
 				min_g=g;
 				min_linkCost = linkCost; 
 				min_neighbour = neighbour;
+				maxM = m;
 			}              
 		}                   
 	}
@@ -814,6 +814,46 @@ void GridWorld::displayMapWithSelectedDetails(bool display_g, bool display_rhs, 
 	}
    catch (std::ifstream::failure e) {
     std::cerr << "Exception dispaying Map\n";
+   }
+}
+
+void GridWorld::displayMapWithStatus(void) 
+{
+	int cellX, cellY;
+	
+		
+	try{
+		//---------------------------------------
+		 displayHeader();
+		//---------------------------------------		
+			for(int j =0; j < GRIDWORLD_ROWS; j++) //row
+			{
+				
+				for(int i =0;i < GRIDWORLD_COLS; i++) //col
+				{
+					
+					if(map[j][i].status == '0') //Untouched Cell
+					{	
+						markCell_col_row(i,j, LIGHTGRAY, WHITE);					
+						//markCell_col_row_details(i,j, LIGHTGRAY, WHITE, true, true, false, true);
+					}
+					
+					if(map[j][i].status == '1') //'1' - Expanded Cell
+					{
+						markCell_col_row(i, j, DARKGRAY, WHITE);
+						//markCell_col_row_details(i,j, BLACK, WHITE, true, true, false, true);	
+					}	
+
+					if(map[j][i].status == '2') //'2' - Accessed Cell
+					{
+						markCell_col_row(i, j, BLACK, WHITE);
+						//markCell_col_row_details(i,j, BLACK, WHITE, true, true, false, true);	
+					}				
+				}
+			}
+	}
+   catch (std::ifstream::failure e) {
+    std::cerr << "Exception dispaying Map with Status\n";
    }
 }
 

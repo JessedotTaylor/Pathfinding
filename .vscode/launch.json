@@ -5,13 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}\\C++\\Main.exe",
             "args": [
-                "${workspaceFolder}/C++/grids/grid_lpa_journal.map",
-                "m"
+                "${workspaceFolder}/C++/grids/grid_big.map",
+                "e"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -26,7 +33,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask" : "Build"
+            "preLaunchTask": "Build"
         }
     ]
 }

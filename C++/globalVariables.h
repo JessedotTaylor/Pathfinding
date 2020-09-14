@@ -47,7 +47,6 @@ const double SQRT_2 =  1.4142135623731;
 	//8-connected gridworld
 	#define DIRECTIONS 8
 	#define CORNER_COST SQRT_2
-	//#define CORNER_COST 1
 	
 	//movement sequence, used in the journal
 	const struct {
@@ -64,18 +63,6 @@ const double SQRT_2 =  1.4142135623731;
 	  //~ int y;
 	//~ } succ[8]={ {1,0}, {1, 1}, {0,1}, {-1, 1}, {-1, 0}, {-1,-1}, {0, -1}, {1, -1} };
 	
-	// struct Neighbours 
-    // {
-    // 	struct {
-    // 	    int i;
-    // 	    int j;
-    // 	} realIJ[8] = { {INF,INF}, {INF, INF}, {INF, INF}, 
-	// 					{INF, INF}, {INF, INF}, 
-	// 					{INF, INF}, {INF, INF}, {INF, INF} };
-    // 	double cost[8]={ INF, INF, INF, 
-    // 		    	  INF,      INF, 
-    // 		    	  INF, INF, INF };
-    // };
 #endif
 //-------------------------------------------------------------------------------
 
@@ -138,6 +125,27 @@ struct vertex
 {
 	
 #ifdef INCREMENTAL_SEARCH_ALGORITHM	
+	double getRHS(void) {reads++; return rhs;}
+	void setRHS(double x) {writes++; rhs = x;}
+
+	double getG(void) {reads++; return g;}
+	void setG(double x) {writes++; g = x;}
+
+	double getH(void) {reads++; return h;}
+	void setH(double x) {writes++; h = x;}
+
+	double getKey(int val) {reads++; return key[val];}
+	void setKey(int val, double x) {writes++; key[val] = x;}
+
+	vertex * getMove(int val) {reads++; return move[val];}
+	void setMove(int val, vertex * x) {writes++; move[val] = x;}
+
+	double getLinkCost(int val) {reads++; return linkCost[val];}
+	void setLinkCost(int val, double x) {writes++; linkCost[val] = x;}
+
+
+
+
     double rhs;
     double g;
 	 int c;
@@ -145,7 +153,7 @@ struct vertex
 	 double f;
 	 double key[2];
 	 vertex* move[DIRECTIONS];
-    double linkCost[DIRECTIONS];	
+    double linkCost[DIRECTIONS];
 	//Neighbours neighbourData;
 #endif	
 	
@@ -171,15 +179,26 @@ struct vertex
 	 //TYPE: 0 - traversable, 1 - blocked, 9 - unknown, 6 - start vertex, 7 - goal vertex
     char type; 
 	//---------------------------------------------------------------------------------
+	char getType(void) {reads++; return type;}
+	void setType(char x) {writes++; type = x;}
+
 	int row;
 	int col;
-	char status; 
 
-	int x;
-	int y;
+	int getRow(void){reads++; return row;}
+	void setRow(int x){writes++; row = x;}
+
+	int getCol(void){reads++; return col;}
+	void setCol(int x){writes++; col = x;}
+
+	char status = '0';
 	
 	int x1,y1,x2,y2;
 	Coordinates centre; //centre x, centre y
+
+	int reads = 0;
+	int writes = 0;
+
 }; 
 
 extern int MAX_MOVES;

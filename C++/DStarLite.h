@@ -19,7 +19,7 @@ class DStarLite {
         void initialise(int _startI, int _startJ, int _goalI, int _goalJ);
         bool computeShortestPath(void);
         bool computeShortestPathStep(int steps);
-        void updateVertex(vertex * u, vertex * uPrime);
+        void updateVertex(vertex * u);
 
         void remove(vertex * v); // Could be updated to take int val
         bool inQueue(vertex * v);
@@ -58,6 +58,7 @@ class DStarLite {
         int km;
 
         int lenU = 0;
+        int maxU = 0;
 
         Key tempKey;
 

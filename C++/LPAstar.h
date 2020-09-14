@@ -14,12 +14,7 @@ public:
     void initialise(int startX, int startY, int goalX, int goalY);
     bool computeShortestPath(void);
     bool computeShortestPathStep(int steps);
-    void updateVertex(vertex * u, vertex * uPrime);
-
-   
-	
-    int minValue(int v1, int v2);
-    int maxValue(int v1, int v2);
+    void updateVertex(vertex * u);
 	
     double calc_H(int x, int y);
     void updateHValues();
@@ -48,6 +43,7 @@ public:
 
     vector<vertex* > U; //Priority Queue
     int lenU = 0;
+    int maxU = 0;
 
     int rows;
     int cols;
