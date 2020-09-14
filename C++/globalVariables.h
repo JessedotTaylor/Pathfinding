@@ -47,7 +47,6 @@ const double SQRT_2 =  1.4142135623731;
 	//8-connected gridworld
 	#define DIRECTIONS 8
 	#define CORNER_COST SQRT_2
-	//#define CORNER_COST 1
 	
 	//movement sequence, used in the journal
 	const struct {
@@ -64,18 +63,6 @@ const double SQRT_2 =  1.4142135623731;
 	  //~ int y;
 	//~ } succ[8]={ {1,0}, {1, 1}, {0,1}, {-1, 1}, {-1, 0}, {-1,-1}, {0, -1}, {1, -1} };
 	
-	// struct Neighbours 
-    // {
-    // 	struct {
-    // 	    int i;
-    // 	    int j;
-    // 	} realIJ[8] = { {INF,INF}, {INF, INF}, {INF, INF}, 
-	// 					{INF, INF}, {INF, INF}, 
-	// 					{INF, INF}, {INF, INF}, {INF, INF} };
-    // 	double cost[8]={ INF, INF, INF, 
-    // 		    	  INF,      INF, 
-    // 		    	  INF, INF, INF };
-    // };
 #endif
 //-------------------------------------------------------------------------------
 
@@ -166,7 +153,7 @@ struct vertex
 	 double f;
 	 double key[2];
 	 vertex* move[DIRECTIONS];
-    double linkCost[DIRECTIONS];	
+    double linkCost[DIRECTIONS];
 	//Neighbours neighbourData;
 #endif	
 	
@@ -204,16 +191,7 @@ struct vertex
 	int getCol(void){reads++; return col;}
 	void setCol(int x){writes++; col = x;}
 
-	char status;
-
-	int x;
-	int y;
-
-	int getX(void){reads++; return x;}
-	void setX(int val){writes++; x = val;}
-
-	int getY(void){reads++; return y;}
-	void setY(int x){writes++; y = x;}
+	char status = '0';
 	
 	int x1,y1,x2,y2;
 	Coordinates centre; //centre x, centre y

@@ -30,35 +30,32 @@ void DStarLite::initialise(int _startJ, int _startI, int _goalJ, int _goalI) {
     goalI = _goalI;
     goalJ = _goalJ;
 
+    km = 0;
+
     sLast = &(maze[startI][startJ]);
     start = &(maze[startI][startJ]);
     goal = &(maze[goalI][goalJ]);
 
-    //cout << "Start Maze\n";
+    sLast->setG(INF);
+    sLast->setRHS(INF);
+    sLast->setRow(startI);
+    sLast->setCol(startJ);
+    sLast->setH(calc_H(startI, startJ));
+
     for(int i=0; i < rows; i++){
         for(int j=0; j < cols; j++){
             maze[i][j].setG(INF);
             maze[i][j].setRHS(INF);
-            maze[i][j].setH(calc_H(i, j));
             maze[i][j].setRow(i);
-            maze[i][j].setX(i);
             maze[i][j].setCol(j);
-            maze[i][j].setY(j);
+            maze[i][j].setH(calc_H(i, j));
+            
         }
     }
-    //cout << "End Maze\n";
 
+    goal->setRHS(0);
 
-    maze[goalI][goalJ].setRHS(0);
-    goal->setKey(0, maze[goalI][goalJ].getH());
-    goal->setKey(1, 0);
-
-    //cout << maze[goalI][goalJ].key[0] <<  maze[goalI][goalJ].key[1] << '\n';
-    //cout << "Start Insert\n";
-    insert(&maze[goalI][goalJ], maze[goalI][goalJ].getKey(0),  maze[goalI][goalJ].getKey(1));
-    //cout << "End Insert\n";
-    //cout << U[0]->key[0] << U[0]->key[1] << '\n';
-
+    insert(goal, calcKeys(goal));
 }
 
 bool DStarLite::computeShortestPath(void) {
@@ -66,32 +63,29 @@ bool DStarLite::computeShortestPath(void) {
          Key kOld = topKey();
 
         vertex *v = pop();
-        vertex * u = &maze[v->row][v->col];
+        vertex * u = &maze[v->getRow()][v->getCol()];
         u->status = '2';
-        
-        // cout << "\nStep: " << z << '\n';
-        // //cout << "D-Q: ("<< u->row <<", " << u->col << ")\n";
-        // cout << "D-Q: (" << (char)((u->row-1) + 'A') << " " << (u->col-1) << ")\n";
+
         
         
-        if (lt(kOld, calcKeys(u->getRow(), u->getCol()))) {
+        if (lt(kOld, calcKeys(u))) {
             insert(u, u->getKey(0), u->getKey(1));
         } else if (u->getG() > u->getRHS()) {
             u->setG(u->getRHS());
 
             for(int m=0; m < DIRECTIONS; m++) {
                 if (u->getLinkCost(m) != INF) {
-                    updateVertex(u->getMove(m), u);
+                    updateVertex(u->getMove(m));
                 }
             }
         } else {
             u->setG(INF);
             for(int m=0; m < DIRECTIONS; m++) {
                 if (u->getLinkCost(m) != INF) {
-                    updateVertex(u->getMove(m), u);
+                    updateVertex(u->getMove(m));
                 }
             }
-            updateVertex(u, u);
+            updateVertex(u);
         }
     }
     return 1;
@@ -131,17 +125,17 @@ bool DStarLite::computeShortestPathStep(int steps) {
                     if (u->getLinkCost(m) != INF) {
                         //cout << u->move[m]->h << maze[u->move[m]->row][u->move[m]->col].h  <<  u->h << '\n';
                         //updateVertex(&maze[u->move[m]->row][u->move[m]->col], u);
-                        updateVertex(u->getMove(m), u);
+                        updateVertex(u->getMove(m));
                     }
                 }
             } else {
                 u->g = INF;
                 for(int m=0; m < DIRECTIONS; m++) {
                     if (u->getLinkCost(m) != INF) {
-                        updateVertex(u->getMove(m), u);
+                        updateVertex(u->getMove(m));
                     }
                 }
-                updateVertex(u, u);
+                updateVertex(u);
             }
 
         } else {
@@ -162,7 +156,7 @@ bool DStarLite::computeShortestPathStep(int steps) {
     return 0;
 }
 
-void DStarLite::updateVertex(vertex * u, vertex * uPrime) {
+void DStarLite::updateVertex(vertex * u) {
     bool debug =false;
     if (debug) {cout << "updateVertex: (" << (char)((u->row-1) + 'A') << " " << (u->col-1) << ")\t";}
     
@@ -190,7 +184,7 @@ void DStarLite::updateVertex(vertex * u, vertex * uPrime) {
         remove(u);
     }
 
-    if (u->g != u->rhs) {
+    if (u->getG() != u->getRHS()) {
         if (debug) {cout << "Entered insert\t";}
         //cout << '\n' << u->g <<  u->rhs << u->h << '\n';
         insert(u, calcKeys(u));
@@ -247,14 +241,17 @@ Key DStarLite::topKey(void) {
     if (lenU > 0) {
         tempKey.keyV[0] = U[0]->getKey(0);
         tempKey.keyV[1] = U[0]->getKey(1);
-        return tempKey;
+    } else {
+        tempKey.keyV[0] = INF;
+        tempKey.keyV[1] = INF;
     }
+    return tempKey;
 }
 
 Key DStarLite::calcKeys(vertex * v) {
     //cout << v->g <<  v->rhs << v->h << '\n';
    
-    double key2 = min(v->getG(), v->getRHS());;
+    double key2 = min(v->getG(), v->getRHS());
     double key1 = key2 + v->getH() + km;
     v->setKey(0, key1);
     tempKey.keyV[0] = key1;
@@ -270,17 +267,18 @@ Key DStarLite::calcKeys(int i, int j) {
 }
 
 double DStarLite::calc_H(int _i, int _j){
-	if (HEURISTIC == 1) {
-        int diffY = abs(sLast->getRow() - _j);
-        int diffX = abs(sLast->getCol() - _i);
+	if (HEURISTIC == MANHATTAN) {
+        int diffY = abs(sLast->getRow() - _i);
+        int diffX = abs(sLast->getCol() - _j);
         
         return (double)max(diffX, diffY);
-    } else if (HEURISTIC == 2) {
-        int diffX = pow((sLast->getCol() - _i), 2);
-        int diffY = pow((sLast->getRow() - _j), 2);
+    } else if (HEURISTIC == EUCLIDEAN) {
+        int diffX = pow((sLast->getRow() - _i), 2);
+        int diffY = pow((sLast->getCol() - _j), 2);
 
         return (double)sqrt(diffX + diffY);
     }
+    return INF;
 }
 
 bool DStarLite::lt(double key00, double key01, double key10, double key11) {

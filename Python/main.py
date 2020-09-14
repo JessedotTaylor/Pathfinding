@@ -1,7 +1,7 @@
 import pygame
 import classes
 import PriorityQ
-import Algorithim
+import Algorithm
 from math import sqrt
 import time
 
@@ -17,67 +17,95 @@ grey      = ( 214, 214, 214)
 darkgrey  = ( 100, 100, 100)
 yellow    = ( 255, 242,   0)
 
+#-------------------------------------
+# Set heuristic
+
 HEURISTIC = 'MANHATTAN'
 #HEURISTIC = 'EUCLIDEAN'
+#-------------------------------------
 
 #CORNER_COST = sqrt(2)
 CORNER_COST = 1
 sequence = [[-1,-1,CORNER_COST],[-1,0,1],[-1,1,CORNER_COST],[0,-1,1],[0,1,1],[1,-1,CORNER_COST],[1,0,1],[1,1,CORNER_COST]]
 
-#inputMapName = 'grids/grid_lpa_journal.map'
-inputMapName = 'grids/grid_Dstar_journal.map'
-#inputMapName = 'grids/grid_lpa_slides.map'
+#-------------------------------------
+# Set input map, and init grid
+
+inputMapName = 'grids/grid_lpa_journal.map'
+#inputMapName = 'grids/grid_Dstar_journal.map'
+#inputMapName = 'grids/grid_big.map'
 gridWorld = classes.Grid(inputMapName, sequence)
 MASTER_GRID = classes.Grid(inputMapName, sequence)
-#print(gridWorld)
-
-U = PriorityQ.PriorityQ()
+#-------------------------------------
 
 
-DStarLite = Algorithim.DStarLite(gridWorld, U, HEURISTIC)
-alg = DStarLite.alg
-#DStarLite.sLast = gridWorld.start
+alg = ''
 
 H_CELLS = gridWorld.rows
 V_CELLS = gridWorld.cols
 
+#--------------------------------------------
+# Starting margins for the top header, results sidebar, margin from edges of the screen, margins of each cell, height of text offset
 HEADER = 100
 RESULTS = 30
 OUTSIDE_MARGIN = 30
 GRID_MARGIN = 2
 TEXT_OFFSET = 5
+#---------------------------------------------
 
+
+
+#---------------------------------------------
+# pygame startup
 pygame.init()
 
 # Set the width and height of the screen
 size = [1900, 1000] #1360 768 Screen 1900 1000
 screen=pygame.display.set_mode(size)
+#-----------------------------------------------
+
+
+
+#-------------------------------------------------
+# Width and height calculations of each cell
 
 #Width / cell = total width - margins / # cells
 width = (size[0] - ((OUTSIDE_MARGIN + RESULTS)+ ((H_CELLS + 1) * GRID_MARGIN))) // V_CELLS
-#width = 100
+
 
 
 #Height / cell = total height - header - outside margin - margins / # cells
 height = (size[1] - (HEADER + OUTSIDE_MARGIN + (V_CELLS + 1) * GRID_MARGIN)) // H_CELLS
-#height = 100
-#print(height, width)
+#-------------------------------------------------
 
 
-cellWidthDiv = (height //5)
+
+#-------------------------------------------------
+# Font size calculations
+
+cellWidthDiv = (height // 6)
 font = pygame.font.SysFont(None, (cellWidthDiv + 1))
 
 HeaderWidthDiv = HEADER // 4
 headerFont = pygame.font.SysFont(None, (HeaderWidthDiv +1))
+#--------------------------------------------------
 
+
+#-----------------------------------------
+# Static top header render
 img1 = headerFont.render('INCREMENTAL OPTIMAL SEARCH (8 CONNECTED GRIDWORLD)', True, yellow, black)
-img2 = headerFont.render('F1: show / hide this header, F4: show / hide details, F5: show / hide Performace Measures, F10: run search, L/R Arrow Keys: Move through path', True, green, black) #Haven't added copy map to algorithim function
-img3 = headerFont.render('B: block cell, U: unblock cell, H: h-values, K: key-values, S: new START, X: new GOAL, P: cell positions, C: local connections, M: all connections', True, white, black)
+img2 = headerFont.render('F1: show / hide this header, F4: show / hide details, F5: show / hide Performace Measures, F10: run search, L/R Arrow Keys: Move through path', True, green, black) #Haven't added copy map to algorithm function
+img3 = headerFont.render('B: block cell, U: unblock cell, H: h-values, K: key-values, S: new START, X: new GOAL, P: cell positions, C: local connections, M: all connections, Q: status', True, white, black)
 img4 = headerFont.render("Filname = {}, heuristic = {}".format(gridWorld.mapName, HEURISTIC), True, white, black)
+#-----------------------------------
+
+
+
+#-----------------------------------
+# Dynamic results sidebar. Font size calculation, Memory alocation and re-render function
 
 resultsWidthDiv = 40
 resultsFont = pygame.font.SysFont(None, (resultsWidthDiv))
-#print("resultsWidthDiv = {}".format(resultsWidthDiv))
 
 res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12, res13, res14 = [0 for x in range(14)]
 resList = [res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12, res13, res14]
@@ -129,6 +157,8 @@ def getAndRenderResults():
     global resList
     resList = [res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12, res13, res14]
 
+#-----------------------------------
+# Variable setup
 
 done = False
 
@@ -137,13 +167,14 @@ drawKeyValues = False
 drawRHS = False
 drawG = False
 drawCellPos = False
+drawStatus = False
 
 drawConn = False
 drawLocal = []
 
 drawPath = False
 path = []
-lenP = len(path)
+lenP = 0
 
 currRobotPos = 0
 iRob, jRob = -9999, -9999
@@ -167,6 +198,9 @@ def resetRobotPathData():
     global prevIRob, prevJRob
     prevIRob, prevJRob = -9999, -9999
 
+#-----------------------------------------
+
+
 clock = pygame.time.Clock()
 
 def getGridCoord(pos):
@@ -174,14 +208,16 @@ def getGridCoord(pos):
     row = (pos[1] - HEADER) // (height)
     return row, column
 
+
+#-------------------------------------
+# Main program loop
 while not done:
-    for event in pygame.event.get():
+    for event in pygame.event.get(): #Keyboard event handler
         if event.type == pygame.QUIT:
             done = True
         
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_b:
-                #Block cell
+            if event.key == pygame.K_b: #Block cell
                 pos = pygame.mouse.get_pos()
                 i, j = getGridCoord(pos)
                 if gridWorld.map[i][j]._Type != 1:
@@ -189,7 +225,7 @@ while not done:
                 
                 resetRobotPathData()
             
-            if event.key == pygame.K_u:
+            if event.key == pygame.K_u: #Unblock cell
                 #Unblock cell
                 pos = pygame.mouse.get_pos()
                 i, j = getGridCoord(pos)
@@ -197,7 +233,7 @@ while not done:
                     gridWorld.setVertex(i, j, 0)
                 resetRobotPathData() 
 
-            if event.key == pygame.K_s:
+            if event.key == pygame.K_s: #Set new start cell
                 #New Start Cell
                 pos = pygame.mouse.get_pos()
                 i, j = getGridCoord(pos)
@@ -212,7 +248,7 @@ while not done:
                         gridWorld.setVertex(oldStart[0], oldStart[1], 0) #Else set to unblocked
                 resetRobotPathData()  
 
-            if event.key == pygame.K_x:
+            if event.key == pygame.K_x: #Set new Goal cell
                 #New goal Cell
                 pos = pygame.mouse.get_pos()
                 i, j = getGridCoord(pos)
@@ -227,27 +263,31 @@ while not done:
                         gridWorld.setVertex(oldGoal[0], oldGoal[1], 0) #Else set to unblocked
                 resetRobotPathData()
 
-            if event.key == pygame.K_p:
+            if event.key == pygame.K_p: #Display Cell position
                 drawCellPos = not drawCellPos
                 drawConn = False
 
-            if event.key == pygame.K_h:
+            if event.key == pygame.K_h: #Display H values
                 drawHValues = not drawHValues
                 drawConn = False
 
-            if event.key == pygame.K_g:
+            if event.key == pygame.K_g: #Display G values
                 drawG = not drawG
                 drawConn = False
 
-            if event.key == pygame.K_r:
+            if event.key == pygame.K_r: #Display RHS
                 drawRHS = not drawRHS
                 drawConn = False
             
-            if event.key == pygame.K_k:
+            if event.key == pygame.K_k: #Display key values
                 drawKeyValues = not drawKeyValues
                 drawConn = False
             
-            if event.key == pygame.K_F4:
+            if event.key == pygame.K_q: #Display key values
+                drawStatus = not drawStatus
+                drawConn = False
+            
+            if event.key == pygame.K_F4: #Display cell information
                 if not drawHValues:
                     drawHValues = True
                     drawKeyValues = True
@@ -255,14 +295,16 @@ while not done:
                     drawG = True
                     drawCellPos = True
                     drawConn = False
+                    drawStatus = True
                 else:
                     drawHValues = False
                     drawKeyValues = False
                     drawRHS = False
                     drawG = False
                     drawCellPos = False
+                    drawStatus = False
 
-            if event.key == pygame.K_F1:
+            if event.key == pygame.K_F1: #Display header (help)
                 if drawHeader:
                     drawHeader = False
                     HEADER = OUTSIDE_MARGIN
@@ -273,7 +315,7 @@ while not done:
                     resetRobotPathData()
                 height = (size[1] - (HEADER + OUTSIDE_MARGIN + (V_CELLS + 1) * GRID_MARGIN)) // H_CELLS
             
-            if event.key == pygame.K_F5:
+            if event.key == pygame.K_F5: #Display results
                 if drawResults:
                     drawResults = False
                     RESULTS = OUTSIDE_MARGIN
@@ -286,7 +328,7 @@ while not done:
 
                 width = (size[0] - (OUTSIDE_MARGIN + RESULTS + (H_CELLS + 1) * GRID_MARGIN)) // V_CELLS
 
-            if event.key == pygame.K_m:
+            if event.key == pygame.K_m: #Display all connections
                 if not drawConn:
                     drawHValues = False
                     drawKeyValues = False
@@ -298,7 +340,7 @@ while not done:
                 else:
                     drawConn = False
 
-            if event.key == pygame.K_c:
+            if event.key == pygame.K_c: #Display local connections and print costs
                 drawHValues = False
                 drawKeyValues = False
                 drawRHS = False
@@ -312,106 +354,149 @@ while not done:
                 else:
                     drawLocal.append([i,j])
                     gridWorld.map[i][j].printNeighbours()            
-                        
-            if event.key == pygame.K_F10:
+
+            if event.key == pygame.K_F7: #Select LPA* and run first search
+                U = PriorityQ.PriorityQ()
+                LpaStar = Algorithm.LPAStar(gridWorld, U, HEURISTIC)
+                
                 start = time.time()
-                DStarLite.computeShortestPath()
+                LpaStar.computeShortestPath()
                 end = time.time()
-                #DStarLite.setSLast(gridWorld.start)
+
                 calcFirstSearch = end - start
                 drawPath = True
                 getAndRenderResults()
-            
-            if event.key == pygame.K_RIGHT:
+
+                alg = LpaStar.alg
+
+            if event.key == pygame.K_F8: #Select D*Lite and run first search
+                U = PriorityQ.PriorityQ()
+                DStarLite = Algorithm.DStarLite(gridWorld, U, HEURISTIC)
+                
+                start = time.time()
+                DStarLite.computeShortestPath()
+                end = time.time()
+
+                calcFirstSearch = end - start
+                drawPath = True
+                getAndRenderResults()
+                alg = DStarLite.alg
+
+            if event.key == pygame.K_RIGHT: #Move forwards through path
                 #print("right arrow")
                 if currRobotPos <= lenP-1:
                     currRobotPos += 1
                 getAndRenderResults()
 
-            if event.key == pygame.K_LEFT:
+            if event.key == pygame.K_LEFT: #Move backwards through path
                 if currRobotPos > 0:
                     currRobotPos -= 1
                 getAndRenderResults()
 
-            if event.key == pygame.K_F11:
+            if event.key == pygame.K_ESCAPE: #Quit
+                done = True
+            
+            #-----------------------------------------------------
+            #Add debug info keys to header
+
+            if event.key == pygame.K_F11: #Calculate path, don't render path
                 start = time.time()
-                DStarLite.computeShortestPath()
+                if alg == 'D':
+                    DStarLite.computeShortestPath()
+                if alg == 'L':
+                    LpaStar.computeShortestPath()
                 end = time.time()
                 #DStarLite.setSLast(gridWorld.start)
                 calcFirstSearch = end - start
                 getAndRenderResults()
 
-            if event.key == pygame.K_F12:
+            if event.key == pygame.K_F12: #SensorSweep on current mouse position, re-render path
                 pos = pygame.mouse.get_pos()
                 i, j = getGridCoord(pos)
                 changes = gridWorld.sensorSweep(i, j)
-                if changes != []:
-                    print("Changes Detected")
+                if changes != [] and alg == 'D':
+                    #print("Changes Detected")
                     DStarLite.km = DStarLite.km + DStarLite.genH(HEURISTIC, [i, j], DStarLite.sLast)
                     DStarLite.setSLast([i, j])
                     DStarLite.genH(HEURISTIC)
-
                 for changedCell in changes:  #The actual cells whoose changes were detected by the sensor sweep
                     for x in changedCell.getNeighbours(): #The neighbours of the changed cells, the effected cells
                         targV = gridWorld.map[x[1][0]][x[1][1]]
                         if targV.getType() != 1:
-                            DStarLite.updateVertex(targV, changedCell) #Update the difference of the changed cell and the effected cells
-                    #Force start position update
-                    DStarLite.setSLast([i,j])
+                            if alg == 'D':
+                                DStarLite.updateVertex(targV) #Update the difference of the changed cell and the effected cells
+                            if alg == 'L':
+                                #print(targV)
+                                LpaStar.updateVertex(targV)
                     start = time.time()
-                    DStarLite.computeShortestPath()
+                    if alg == 'D':
+                        DStarLite.computeShortestPath()
+                    if alg == 'L':
+                        LpaStar.computeShortestPath()
                     end = time.time()
                     calcSecondSearch = end - start
                     path = []
                     lenP = 0
-                    currotPos = 0   
+                    currRobotPos = 0   
+                    
 
-            if event.key == pygame.K_F9:
-                DStarLite.computeShortestPathStep(1)
-                gridWorld = DStarLite.writeGrid()
     clock.tick(20) #Limit to ?60? frames / second
 
     screen.fill(black)
-
-    #Draw Text header
-    if drawHeader:
-        screen.blit(img1, (5, 5))
+    
+   
+    if drawHeader:  #Draw Top header
+        screen.blit(img1, (5, 5)) #Static text headers, so no need to re-render
         screen.blit(img2, (5, 25))
         screen.blit(img3, (5, 45))
+        if alg == 'D':
+            algOut = "D*Lite"
+        elif alg == 'L':
+            algOut = "LPA*"
+        else :
+            algOut = "None"
+        img4 = headerFont.render("Filname = {}, heuristic = {}, Selected Algorithm = {}".format(gridWorld.mapName, HEURISTIC, algOut), True, white, black)
         screen.blit(img4, (5, 65))
     
-    if drawResults:
-        #getAndRenderResults()
-        #print(resList)
+    if drawResults: #Draw results sidebar
         for i in range(14):
             screen.blit(resList[i], (10, (40 * i) + 5 + HEADER))
-
-
+    
+    
     #Draw white background for map
     colour = white
     pygame.draw.rect(screen, white, [RESULTS, HEADER, width*V_CELLS+GRID_MARGIN*V_CELLS, height*H_CELLS+GRID_MARGIN*H_CELLS])
 
     
-    if lenP > 0 and currRobotPos >= 0:
+    if lenP > 0 and currRobotPos >= 0: #Move the robot along the path, and search for map updates
         #print(currRobotPos)
         if currRobotPos < lenP:
-            iRob, jRob = path[currRobotPos][2]
+            if alg == 'D':
+                iRob, jRob = path[currRobotPos][2]
+            if alg == 'L':
+                iRob, jRob = path[currRobotPos][1]
 
             if (iRob, jRob) != (prevIRob, prevJRob):
                 changes = gridWorld.sensorSweep(iRob, jRob)
-                if changes != []:
+                if changes != [] and alg == 'D':
                     #print("Changes Detected")
                     DStarLite.km = DStarLite.km + DStarLite.genH(HEURISTIC, [iRob, jRob], DStarLite.sLast)
                     DStarLite.setSLast([iRob, jRob])
                     DStarLite.genH(HEURISTIC)
-
                 for changedCell in changes:  #The actual cells whoose changes were detected by the sensor sweep
                     for x in changedCell.getNeighbours(): #The neighbours of the changed cells, the effected cells
                         targV = gridWorld.map[x[1][0]][x[1][1]]
                         if targV.getType() != 1:
-                            DStarLite.updateVertex(targV, changedCell) #Update the difference of the changed cell and the effected cells
+                            if alg == 'D':
+                                DStarLite.updateVertex(targV) #Update the difference of the changed cell and the effected cells
+                            if alg == 'L':
+                                #print(targV)
+                                LpaStar.updateVertex(targV)
                     start = time.time()
-                    DStarLite.computeShortestPath()
+                    if alg == 'D':
+                        DStarLite.computeShortestPath()
+                    if alg == 'L':
+                        LpaStar.computeShortestPath()
                     end = time.time()
                     calcSecondSearch = end - start
                     path = []
@@ -422,9 +507,8 @@ while not done:
         else: #Handle for goal frame not in path
             #print("Else Handler")
             iRob, jRob = path[lenP - 1][1]
-
-    #Draw Cells and colours
-    for i in range(H_CELLS):
+   
+    for i in range(H_CELLS):  #Draw Cells and colours
         for j in range(V_CELLS):
             currType = gridWorld.map[i][j]._Type
             if currType == 0:
@@ -435,7 +519,7 @@ while not done:
                 colour = black
             elif currType == 6:
                 #Start Vertex
-                if alg == 'L':
+                if alg == 'L' or alg == '':
                     colour = green
                 else:
                     colour = grey
@@ -452,7 +536,7 @@ while not done:
             if iRob == i and jRob == j:
                 colour = green
             
-            if DStarLite.sLast[0] == i and DStarLite.sLast[1] == j:
+            if alg == 'D' and DStarLite.sLast[0] == i and DStarLite.sLast[1] == j:
                 colour = green 
 
             x1 = (GRID_MARGIN + width) * j + GRID_MARGIN + RESULTS
@@ -483,6 +567,10 @@ while not done:
             if drawKeyValues:
                 img = font.render('[{}, {}]'.format(gridWorld.map[i][j]._key[0], gridWorld.map[i][j]._key[1]), True, white, colour)
                 screen.blit(img, (x1 + TEXT_OFFSET + (width //2 - cellWidthDiv ) ,y1 + (cellWidthDiv * 4)))
+            
+            if drawStatus:
+                img = font.render('status = {}'.format(gridWorld.map[i][j]._status), True, white, colour)
+                screen.blit(img, (x1 + TEXT_OFFSET + (width //2 - cellWidthDiv ) ,y1 + (cellWidthDiv * 5)))
 
             if drawConn:
                 pygame.draw.circle(screen, white, COM, 15, 1) #Draw COM circle
@@ -496,7 +584,7 @@ while not done:
                         COM_other = gridWorld.map[x[1][0]][x[1][1]].getCOM()
                         pygame.draw.lines(screen, colour2, False, [COM_other, COM], 2)                   
 
-    for z in drawLocal:
+    for z in drawLocal: #Draw local connections for all selected cells (Press c to toggle cell)
         i = z[0]
         j = z[1]
         COM = gridWorld.map[i][j].getCOM()
@@ -511,20 +599,24 @@ while not done:
             COM_other = gridWorld.map[x[1][0]][x[1][1]].getCOM()
             pygame.draw.lines(screen, colour2, False, [COM_other, COM], 2)
     
-    if drawPath and lenP == 0:
-        start = DStarLite.sLast
+
+    if (drawPath and lenP == 0): #Search for path to display if algorithm has been run, but no path has been found
+        if alg == 'D':
+            start = DStarLite.sLast
+        else:
+            start = gridWorld.start
         goal = gridWorld.goal
 
-        if gridWorld.map[start[0]][start[1]]._h > 0: #Determine algorithim used based on start point hueristic value. 0 if LPA, != 0 if DStarLite
+        if alg == 'L': 
             #print("Detected LPAStar")
             minNeighbour = gridWorld.map[goal[0]][goal[1]]
-            targObj = gridWorld.map[DStarLite.sLast[0]][DStarLite.sLast[1]]
+            targObj = gridWorld.map[start[0]][start[1]]
         else:
             #print("Detected DStarLite")
             if gridWorld.map[start[0]][start[1]].getG() == 99:
                 print("No path exists!")
                 exit()
-            minNeighbour = gridWorld.map[DStarLite.sLast[0]][DStarLite.sLast[1]]
+            minNeighbour = gridWorld.map[start[0]][start[1]]
             targObj = gridWorld.map[goal[0]][goal[1]]
         
         #print(minNeighbour, targObj)
@@ -534,9 +626,9 @@ while not done:
             targVcoord = [minNeighbour.getRow(), minNeighbour.getCol()]
             #print(targVKey)
             for x in minNeighbour.getNeighbours():
-                dx = x[0][0]
-                dy = x[0][1]
-                cost = x[0][2]
+                # dx = x[0][0]
+                # dy = x[0][1]
+                # cost = x[0][2]
                 dx, dy, cost = x[0]
                
                 targV = gridWorld.map[targVcoord[0] + dx][targVcoord[1] + dy]
@@ -560,9 +652,11 @@ while not done:
             path.reverse() #Move path from goal to start to start to goal
         lenP = len(path)
         getAndRenderResults()
-        #print(path)
+        # print(path)
+        # print(lenP)
 
-    elif drawPath:
+
+    if drawPath and lenP > 0: #Render path if is been found.
         for x in path:
             pygame.draw.lines(screen, red, False, x[0], 2)
 

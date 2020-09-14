@@ -37,6 +37,7 @@ public:
 	void displayMapWithPositionDetails();
 	void displayMapWithKeyDetails(); 
 	void displayMapWithSelectedDetails(bool display_g, bool display_rhs, bool display_h, bool display_key); 
+	void displayMapWithStatus(void);
 	
 	//--------------------------------------------------
 	//void displayMapWithRLDetails(bool display_reward, bool display_maxQ, long maxEpoch);

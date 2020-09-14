@@ -238,7 +238,7 @@ class Grid:
 
     def genFromFile(self, filename):
 
-        with open('Python/' + filename, 'r') as f:
+        with open('Python/' +filename, 'r') as f:
             inp = f.readlines()
 
         #print(int(inp[0]), int(inp[1]))
@@ -333,12 +333,14 @@ class Grid:
 
             if targV.getType() == 9:
                 targV.setType(1)
+                # targV.setG(99)
+                # targV.setRHS(99)
                 changes.append(targV)
+                for z in self.map[x[1][0]][x[1][1]].getNeighbours():
+                    self.genNeighbours([z[1][0], z[1][1]])
 
-        if len(changes) > 0:
-            self.genNeighbours([i, j])
-            return changes
-        return []
+        return changes
+
     
     def getStatus(self):
         results = {}
@@ -384,24 +386,25 @@ class Grid:
 
                 
 if __name__ == '__main__':
-    #CORNER_COST = sqrt(2)
-    CORNER_COST = 1
-    sequence = [[-1,-1,CORNER_COST],[-1,0,1],[-1,1,CORNER_COST],[0,-1,1],[0,1,1],[1,-1,CORNER_COST],[1,0,1],[1,1,CORNER_COST]]
-    gridWorld = Grid('grids/grid_DStar_journal.map', sequence)
-    #gridWorld.sensorSweep(3,2)
-    #print(gridWorld)
-    z = Vertex(3,0,0, key=[1,2])
-    x = Vertex(1,0,0, key=[0,1])
-    c = Vertex(2,0,0, key=[1,1])
-    v = Vertex(0,0,0, key=[10,1])
-    v1 = Vertex(0,0,0, key=[10,1])
-    print(v1 <= v)
-    print( not (v1 > v))
-    print(c < v)
-    print(c < [10,1])
-    print(z != x)
-    # gridWorld.map[1][1].printNeighbours()
-    # print(gridWorld.map[1][1])
+    print("Classes printing in __main__")
+    # #CORNER_COST = sqrt(2)
+    # CORNER_COST = 1
+    # sequence = [[-1,-1,CORNER_COST],[-1,0,1],[-1,1,CORNER_COST],[0,-1,1],[0,1,1],[1,-1,CORNER_COST],[1,0,1],[1,1,CORNER_COST]]
+    # gridWorld = Grid('grids/grid_DStar_journal.map', sequence)
+    # #gridWorld.sensorSweep(3,2)
+    # #print(gridWorld)
+    # z = Vertex(3,0,0, key=[1,2])
+    # x = Vertex(1,0,0, key=[0,1])
+    # c = Vertex(2,0,0, key=[1,1])
+    # v = Vertex(0,0,0, key=[10,1])
+    # v1 = Vertex(0,0,0, key=[10,1])
+    # print(v1 <= v)
+    # print( not (v1 > v))
+    # print(c < v)
+    # print(c < [10,1])
+    # print(z != x)
+    # # gridWorld.map[1][1].printNeighbours()
+    # # print(gridWorld.map[1][1])
 
-    #Grid.genFromFile('grids/grid_Dstar_journal.map')
-    #print(gridWorld)
+    # # Grid.genFromFile('grids/grid_Dstar_journal.map')
+    # # print(gridWorld)

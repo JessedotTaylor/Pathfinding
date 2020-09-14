@@ -92,13 +92,14 @@ class PriorityQ:
         
 
 if __name__ == "__main__":
-    import classes
-    U = PriorityQ()
-    U.insert(classes.Vertex(3,0,0, key=[1,2]), [1,2])
-    U.insert(classes.Vertex(1,0,0, key=[0,1]), [0,1])
-    U.insert(classes.Vertex(2,0,0, key=[1,1]), [1,1])
-    v = classes.Vertex(0,0,0, key=[10,1])
-    U.insert(v, [10,1])
-    U.update(v, [0,0])
-    print(v in U)
-    print(U)
+    print("PriorityQ printing in __main__")
+    # import classes
+    # U = PriorityQ()
+    # U.insert(classes.Vertex(3,0,0, key=[1,2]), [1,2])
+    # U.insert(classes.Vertex(1,0,0, key=[0,1]), [0,1])
+    # U.insert(classes.Vertex(2,0,0, key=[1,1]), [1,1])
+    # v = classes.Vertex(0,0,0, key=[10,1])
+    # U.insert(v, [10,1])
+    # U.update(v, [0,0])
+    # print(v in U)
+    # print(U)

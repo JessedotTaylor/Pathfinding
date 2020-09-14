@@ -199,6 +199,7 @@ void updateMap(GridWorld &gWorld, LpaStar* LPA) {
 			case '9':
 			{
 				gWorld.map[i][j].type= '1';
+				LPA->maze[i][j].type = '1';
 				
 				LPA->maze[i][j].g = INF;
 				gWorld.map[i][j]. g = INF;
@@ -209,7 +210,8 @@ void updateMap(GridWorld &gWorld, LpaStar* LPA) {
 					gWorld.map[i][j].linkCost[m] = INF;
 					LPA->maze[i][j].linkCost[m] = INF;
 					if (LPA->maze[i][j].move[m]->type != '1'){
-						LPA->updateVertex(LPA->maze[i][j].move[m], &(LPA->maze[i][j]));
+						cout << "Update Vertex: \n(" << (char)((LPA->maze[i][j].move[m]->row-1) + 'A') << ", " << (LPA->maze[i][j].move[m]->col-1) << ")\n";
+						LPA->updateVertex(LPA->maze[i][j].move[m]);
 					}
 				}
 				break;
@@ -219,6 +221,7 @@ void updateMap(GridWorld &gWorld, LpaStar* LPA) {
 		   }
 	   }
 	}
+	copyDisplayMapToMaze(grid_world, lpa_star);
  }
 
 bool updateMap(GridWorld &gWorld, DStarLite * DStar, int i, int j) {
@@ -253,7 +256,7 @@ bool updateMap(GridWorld &gWorld, DStarLite * DStar, int i, int j) {
 						gWorld.map[mapI][mapJ].linkCost[m] = INF;
 						neighbour->linkCost[m] = INF;
 						if (neighbour->move[m]->type != '1'){
-							DStar->updateVertex(neighbour->move[m], neighbour);
+							DStar->updateVertex(neighbour->move[m]);
 						}
 					}
 					changes = 1;
@@ -300,7 +303,7 @@ int getKey(){
     }
 	 
 	 if(GetAsyncKeyState(VK_F6) < 0) {
-        //execute A* with strict expanded list
+        //Show status of cells
 		  return 106;
     }
 	 if(GetAsyncKeyState(VK_F7) < 0) {
@@ -350,7 +353,7 @@ int getKey(){
 		  return 12;
     }
 
-	if(GetAsyncKeyState(0x49) < 0) { //I-key (Algorithim Info)?
+	if(GetAsyncKeyState(0x49) < 0) { //I-key (Algorithim Info)
 		  return 13;
     }
 	 
@@ -405,7 +408,7 @@ void runSimulation(char *fileName){
 	long secondSearchTime = INF;
 	double firstMaxU = INF;
 	double secondMaxU = INF;
-	double pathL = INF;
+	double pathL = 0;
 	double acc = 0;
 	double ex = 0;
 	double read = 0;
@@ -494,7 +497,10 @@ void runSimulation(char *fileName){
 					break;
 				
 				case 106: 
+				{
+					grid_world.displayMapWithStatus();
 					break;
+				}
 				
 				case 13: //I (Info) key pressed
 				{	
@@ -507,35 +513,53 @@ void runSimulation(char *fileName){
 						cout << "\n----------------------------\nD*Lite Data:\n\n";
 					}
 
+					bool secondSearch = secondMaxU < INF;
+
 					if (firstMaxU < INF) {cout << "First Search - Max Q Length: " << firstMaxU << '\n';}
 					if (secondMaxU < INF) {cout << "Second Search - Max Q Length: " << secondMaxU << '\n';}
 
-					if (pathL < INF) {cout << "Max Path Length: " << pathL << '\n';}
-
-					int rows = grid_world.getGridWorldRows();
-					int cols = grid_world.getGridWorldCols();
+					if (pathL > 0) {
+						if (secondSearch) {
+							cout << "Path Length (Second Search): " << pathL << '\n';
+						} else {
+							cout << "Path Length (First Search): " << pathL << '\n';
+						}
+						
+					}
 
 					acc = 0;
 					ex = 0;
 					read = 0;
 					write = 0;
-					for (int i = 0; i < rows; i++) {
-						for (int j = 0; j < cols; j++) {
+
+					for (int i = 0; i < grid_world.getGridWorldRows(); i++) {
+						for (int j = 0; j < grid_world.getGridWorldCols(); j++) {
 							read = read + grid_world.map[i][j].reads;
 							write = write + grid_world.map[i][j].writes;
 							if (grid_world.map[i][j].status == '1') {
-								acc++;
+								ex++;
 							} else if (grid_world.map[i][j].status == '2') {
 								acc++;
 								ex++;
 							}
 						}
 					}
-					if (acc > 0) {cout << "Vertex Accesses: " << acc << '\n';}
-					if (ex > 0) {cout << "Vertex Expansions: " << ex << '\n';}
+					if (secondSearch) {
+						if (ex > 0) {cout << "Vertex Expansions (Sum of both searches): " << ex << '\n';}
+						if (acc > 0) {cout << "Vertex Accesses (Sum of both searches): " << acc << '\n';}
+						
 
-					if (read > 0) {cout << "Vertex Reads: " << read << '\n';}
-					if (write > 0) {cout << "Vertex Writes: " << write << '\n';}
+						if (read > 0) {cout << "Vertex Reads (Sum of both searches): " << read << '\n';}
+						if (write > 0) {cout << "Vertex Writes (Sum of both searches): " << write << '\n';}
+					} else {
+						if (ex > 0) {cout << "Vertex Expansions (First Search): " << ex << '\n';}
+						if (acc > 0) {cout << "Vertex Accesses (First Search): " << acc << '\n';}
+						
+
+						if (read > 0) {cout << "Vertex Reads (First Search): " << read << '\n';}
+						if (write > 0) {cout << "Vertex Writes (First Search): " << write << '\n';}
+					}
+					
 
 					if (firstSearchTime < INF) {cout << "First Search - Run Time: " << (double)(firstSearchTime) / CLOCKS_PER_SEC * 1000 << "ms\n";}
 					if (secondSearchTime < INF) {cout << "Second Search - Run Time: " << (double)(secondSearchTime) / CLOCKS_PER_SEC * 1000 << "ms\n";}
@@ -548,25 +572,28 @@ void runSimulation(char *fileName){
 					switch (lpa_star->searchState){
 						case 0:
 						{	
+							copyDisplayMapToMaze(grid_world, lpa_star);
 							startTime = clock();
 							pathFound = lpa_star->computeShortestPath();
 							endTime = clock();
 							firstSearchTime = endTime - startTime;
-							firstMaxU = lpa_star->maxU;							
+							firstMaxU = lpa_star->maxU;	
+							D_Star_Lite->searchState = 0;						
 							lpa_star->searchState = 1;
 							break;
 						}
 						case 1:
 						{
 							updateMap(grid_world, lpa_star);
-							copyDisplayMapToMaze(grid_world, lpa_star);
 							startTime = clock();
 							pathFound = lpa_star->computeShortestPath();
 							endTime = clock();
+							//cout << "LpaStar returned "<< pathFound <<  "\n";
 							secondSearchTime = endTime - startTime;
 							secondMaxU = lpa_star->maxU;	
 							//cout << "LPA* Second Search Run time: " << (double)(endTime - startTime) / CLOCKS_PER_SEC * 1000 << "ms\n";
 							lpa_star->searchState = 2;
+							D_Star_Lite->searchState = 0;
 							break;
 						}
 						default:
@@ -584,13 +611,37 @@ void runSimulation(char *fileName){
 					break;
 				}
 				
+				case 108: //F8 - Run D*Lite
+				{
+					//D_Star_Lite->computeShortestPathStep(10);
+					if (D_Star_Lite->searchState < 1) { 
+						copyDisplayMapToMaze(grid_world, D_Star_Lite);
+						startTime = clock();
+						D_Star_Lite->computeShortestPath();
+						endTime = clock();
+						firstSearchTime = endTime - startTime;
+						firstMaxU = D_Star_Lite->maxU;
+						//cout << "D* First Search Run time: " << (double)(endTime - startTime) / CLOCKS_PER_SEC * 1000 << "ms\n";
+						///cout << "Compute Done\n";
+						copyMazeToDisplayMap(grid_world, D_Star_Lite);
+						cout << "copied D_Star_Lite's 'maze' to display 'map'" << endl;
+						alg = D_Star_Lite->alg;
+						D_Star_Lite->searchState = 1;
+						lpa_star->searchState = 0;
+						Sleep(200);
+					}
+					break;
+				}
+				
 				case 201: //Down Arrow
 				{
 					if (alg == 'D') {
+
 						vertex * robV = grid_world.findMinNeighbour(currPos);
 
 						bool changes = updateMap(grid_world, D_Star_Lite, robV->row,  robV->col);
 						if (changes) {
+							copyDisplayMapToMaze(grid_world, D_Star_Lite);
 							D_Star_Lite->km = D_Star_Lite->km + D_Star_Lite->calc_H(currPos->row, currPos->col);
 							D_Star_Lite->sLast = &(D_Star_Lite->maze[currPos->row][currPos->col]);
 							D_Star_Lite->updateHValues();
@@ -598,45 +649,30 @@ void runSimulation(char *fileName){
 							startTime = clock();
 							D_Star_Lite->computeShortestPath();
 							endTime = clock();
+
+							copyMazeToDisplayMap(grid_world, D_Star_Lite);
 							
 							secondSearchTime = (endTime - startTime);
 							secondMaxU = D_Star_Lite->maxU;
 
+							D_Star_Lite->searchState = 2;
+
 							//cout << "D* Second Search Run time: " << (double)(endTime - startTime) / CLOCKS_PER_SEC * 1000 << "ms\n";
-						} 
-						if ((currPos->row != start.row) || (currPos->col != start.col)) {
-							grid_world.setMapTypeValue(currPos->row, currPos->col, oldType);
 						}
+
 						
+
+						grid_world.setMapTypeValue(currPos->row, currPos->col, oldType);
+
 						//cout << "\nrobV: (" << (char)((robV->row-1) + 'A') << " " << (robV->col-1) << ")\n";
 
 						oldType = grid_world.getMapTypeValue(robV->row, robV->col);
 						grid_world.setMapTypeValue(robV->row, robV->col, '6');
 
-						currPos = robV;			
-
-						copyDisplayMapToMaze(grid_world, D_Star_Lite);
+						currPos = robV;	
 
 						Sleep(200);
 					}
-					break;
-				}
-				
-				case 108: //F8 - Run D*Lite
-				{
-					//D_Star_Lite->computeShortestPathStep(10);
-					startTime = clock();
-					D_Star_Lite->computeShortestPath();
-					endTime = clock();
-					firstSearchTime = endTime - startTime;
-					firstMaxU = D_Star_Lite->maxU;
-					//cout << "D* First Search Run time: " << (double)(endTime - startTime) / CLOCKS_PER_SEC * 1000 << "ms\n";
-					///cout << "Compute Done\n";
-					copyMazeToDisplayMap(grid_world, D_Star_Lite);
-					cout << "copied D_Star_Lite's 'maze' to display 'map'" << endl;
-					alg = D_Star_Lite->alg;
-					lpa_star->searchState = 0;
-					Sleep(200);
 					break;
 				}
 				
@@ -758,13 +794,19 @@ void runSimulation(char *fileName){
 					if (alg == 'D') { //Last used algorithim D*
 						copyMazeToDisplayMap(grid_world, D_Star_Lite);
 						cout << "copied D_Star_Lite's maze to display map" << endl;
-						grid_world.displayPath(D_Star_Lite->sLast, D_Star_Lite->goal);
+						//grid_world.displayPath(D_Star_Lite->sLast, D_Star_Lite->goal);
+						grid_world.displayPath(&(grid_world.map[D_Star_Lite->sLast->row][D_Star_Lite->sLast->col]), &(grid_world.map[D_Star_Lite->goalI][D_Star_Lite->goalJ]));
+
+						pathL = 0;
 						pathL = grid_world.pathLength;
 
 					} else if (alg == 'L') { ////Last used algorithim LPA*
 						copyMazeToDisplayMap(grid_world, lpa_star);
 						cout << "copied lpa_star's maze to display map" << endl;
-						grid_world.displayPath(lpa_star->goal, lpa_star->start);
+						//grid_world.displayPath(lpa_star->goal, lpa_star->start);
+						grid_world.displayPath(&(grid_world.map[lpa_star->goalI][lpa_star->goalJ]), &(grid_world.map[lpa_star->startI][lpa_star->startJ]));
+
+						pathL = 0;
 						pathL = grid_world.pathLength;
 					}
 					

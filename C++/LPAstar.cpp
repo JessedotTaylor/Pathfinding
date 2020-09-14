@@ -28,11 +28,10 @@ void LpaStar::initialise(int _startJ, int _startI, int _goalJ, int _goalI){
 	   for(int j=0; j < cols; j++){
 		   	maze[i][j].setG(INF);
 			maze[i][j].setRHS(INF);
-			maze[i][j].setH(calc_H(i, j));
-			maze[i][j].setRow(i);
-            maze[i][j].setX(i);
+            maze[i][j].setRow(i);
             maze[i][j].setCol(j);
-            maze[i][j].setY(j);
+			maze[i][j].setH(calc_H(i, j));
+			
 		}
 	}
 
@@ -42,10 +41,7 @@ void LpaStar::initialise(int _startJ, int _startI, int _goalJ, int _goalI){
 	//START VERTEX
 	start->setRHS(0.0);
 
-	start->setKey(0, maze[startI][startJ].getH());
-	start->setKey(1, 0);
-
-	insert(&maze[startI][startJ], maze[startI][startJ].getKey(0), maze[startI][startJ].getKey(1));
+    insert(&maze[startI][startJ], calcKey(start));
 
 	// for (int x=0; x < lenU; x++) {
     //     //cout << "(" << U[x]->row << ", " << U[x]->col << ")\t";
@@ -68,17 +64,17 @@ bool LpaStar::computeShortestPath(void) {
 			
 			for (int m=0; m < DIRECTIONS; m++) {
 				if (u->getLinkCost(m) != INF) {
-					updateVertex(u->getMove(m), u);
+					updateVertex(u->getMove(m));
 				}
 			}
 		} else {
 			u->setG(INF);
 			for(int m=0; m < DIRECTIONS; m++) {
 				if (u->getLinkCost(m) != INF) {
-					updateVertex(u->getMove(m), u);
+					updateVertex(u->getMove(m));
 				}
 			}
-			updateVertex(u, u);
+			updateVertex(u);
 		}
 	}
 	return 1;
@@ -100,17 +96,17 @@ bool LpaStar::computeShortestPathStep(int steps) {
 
 				for (int m=0; m < DIRECTIONS; m++) {
 					if (u->getLinkCost(m) != INF) {
-						updateVertex(u->getMove(m), u);
+						updateVertex(u->getMove(m));
 					}
 				}
 			} else {
 				u->setG(INF);
                 for(int m=0; m < DIRECTIONS; m++) {
                     if (u->getLinkCost(m) != INF) {
-                        updateVertex(u->getMove(m), u);
+                        updateVertex(u->getMove(m));
                     }
                 }
-                updateVertex(u, u);
+                updateVertex(u);
 			}
 		} else {
 			cout << "Loop Broke (Goal Found?)" << '\n';
@@ -130,7 +126,7 @@ bool LpaStar::computeShortestPathStep(int steps) {
 	return 0;
 }
 
-void LpaStar::updateVertex(vertex * u, vertex * uPrime) {
+void LpaStar::updateVertex(vertex * u) {
     bool debug =false;
     if (debug) {cout << "updateVertex: (" << (char)((u->row-1) + 'A') << " " << (u->col-1) << ")\t";}
 
@@ -147,7 +143,7 @@ void LpaStar::updateVertex(vertex * u, vertex * uPrime) {
                 if (cost < currMin) {currMin = cost;}
             } 
         }
-        u->rhs = currMin;
+        u->setRHS(currMin);
     }
 
 	if (inQueue(u)) {
@@ -155,7 +151,7 @@ void LpaStar::updateVertex(vertex * u, vertex * uPrime) {
         remove(u);
     }
 
-	if (u->g != u->rhs) {
+	if (u->getG() != u->getRHS()) {
         if (debug) {cout << "Entered insert\t";}
         insert(u, calcKey(u));
     }
@@ -189,27 +185,7 @@ bool LpaStar::inQueue(vertex * v) {
     return false;
 }
 
-double LpaStar::calc_H(int i, int j){
-	if (HEURISTIC == 1) {
-        int diffX = abs(goalI - i);
-        int diffY = abs(goalJ - j);
-        
-        return (double)max(diffY, diffX);
-    } else if (HEURISTIC == 2) {
-        int diffX = pow((goalI - i), 2);
-        int diffY = pow((goalJ - j), 2);
 
-        return (double)sqrt(diffX + diffY);
-    }
-}
-
-void LpaStar::updateHValues(){
-	for(int i=0; i < rows; i++){
-	   for(int j=0; j < cols; j++){
-		   maze[i][j].setH(calc_H(i, j));
-		}
-	}
-}
 
 vertex * LpaStar::pop(void) {
     vertex * v = U[0];
@@ -238,8 +214,11 @@ Key LpaStar::topKey(void) {
     if (lenU > 0) {
         tempKey.keyV[0] = U[0]->getKey(0);
         tempKey.keyV[1] = U[0]->getKey(1);
-        return tempKey;
+    } else {
+        tempKey.keyV[0] = INF;
+        tempKey.keyV[1] = INF;
     }
+    return tempKey;
 }
 
 Key LpaStar::calcKey(int i, int j){
@@ -249,7 +228,7 @@ Key LpaStar::calcKey(int i, int j){
 
 Key LpaStar::calcKey(vertex *cell){
 	double key2 = min(cell->getG(), cell->getRHS());
-	double key1 = key2 + cell->h;
+	double key1 = key2 + cell->getH();
 	
 	cell->setKey(0, key1);
 	cell->setKey(1, key2);
@@ -258,6 +237,22 @@ Key LpaStar::calcKey(vertex *cell){
 
 	return tempKey;
 }
+double LpaStar::calc_H(int i, int j){
+	if (HEURISTIC == MANHATTAN) {
+        int diffX = abs(goalI - i);
+        int diffY = abs(goalJ - j);
+        
+        return (double)max(diffY, diffX);
+    } else if (HEURISTIC == EUCLIDEAN) {
+        int diffX = pow((goalI - i), 2);
+        int diffY = pow((goalJ - j), 2);
+
+        return (double)sqrt(diffX + diffY);
+    }
+    return INF;
+}
+
+
 
 bool LpaStar::lt(double key00, double key01, double key10, double key11) {
     if (key00 < key10) {return true;} 
@@ -278,6 +273,14 @@ bool LpaStar::lt(Key k1, Key k2) {
     double key10 = k2.keyV[0];
     double key11 = k2.keyV[1];
     return lt(key00, key01, key10, key11);
+}
+
+void LpaStar::updateHValues(){
+	for(int i=0; i < rows; i++){
+	   for(int j=0; j < cols; j++){
+		   maze[i][j].setH(calc_H(i, j));
+		}
+	}
 }
 
 void LpaStar::updateAllKeyValues(){	
